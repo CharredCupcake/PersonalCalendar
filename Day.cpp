@@ -25,6 +25,11 @@ Day::Day(const Date& date, const Meeting& meeting) :
 	pushMeeting(meeting);
 }
 
+Day::~Day()
+{
+	delete[] m_meetings;
+}
+
 Date& Day::getDate()
 {
 	return m_date;

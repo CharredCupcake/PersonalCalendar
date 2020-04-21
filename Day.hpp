@@ -17,6 +17,7 @@ public:
 
 	Day();
 	Day(const Date& date, const Meeting& meeting);
+	~Day();
 
 	Date& getDate();
 	size_t getMeetingSize();
