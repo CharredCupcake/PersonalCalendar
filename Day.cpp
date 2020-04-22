@@ -25,9 +25,24 @@ Day::Day(const Date& date, const Meeting& meeting) :
 	pushMeeting(meeting);
 }
 
-Day::~Day()
+Day& Day::operator=(const Day& other)
 {
-	delete[] m_meetings;
+	if (this != &other)
+	{
+		m_date = other.m_date;
+		m_meetingSize = other.m_meetingSize;
+		if (m_meetings != nullptr)
+		{
+			delete[] m_meetings;
+		}
+		m_meetings = new Meeting[m_meetingSize];
+		for (size_t i = 0; i < m_meetingSize; i++)
+		{
+			m_meetings[i] = other.m_meetings[i];
+		}
+		m_isWeekend = other.m_isWeekend;
+	}
+	return *this;
 }
 
 Date& Day::getDate()
@@ -97,14 +112,14 @@ void Day::sortMeetings()
 {
 	for (size_t i = 0; i < m_meetingSize - 1; i++)
 	{
-		for (size_t j = i; j < m_meetingSize - 1; j++)
+		for (size_t j = 0; j < m_meetingSize - i - 1; j++)
 		{
 			if (m_meetings[j].getStartTime() / 100 > m_meetings[j + 1].getStartTime() / 100)
 			{
 				swapMeetings(m_meetings[j], m_meetings[j + 1]);
 				continue;
 			}
-			if(m_meetings[j].getStartTime() / 100 == m_meetings[j + 1].getStartTime() / 100)
+			if (m_meetings[j].getStartTime() / 100 == m_meetings[j + 1].getStartTime() / 100)
 			{
 				if (m_meetings[j].getStartTime() % 100 > m_meetings[j + 1].getStartTime() % 100)
 				{
@@ -113,4 +128,19 @@ void Day::sortMeetings()
 			}
 		}
 	}
+}
+
+void Day::setIsWeekend(bool isWeekend)
+{
+	m_isWeekend = isWeekend;
+}
+
+bool Day::getIsWeekend()
+{
+	return m_isWeekend;
+}
+
+void Day::setDate(const Date& date)
+{
+	m_date = date;
 }

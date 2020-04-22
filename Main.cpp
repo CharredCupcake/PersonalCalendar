@@ -6,8 +6,9 @@ int main()
 	Calendar cal("Test.txt");
 	cal.book();
 	cal.book();
+	cal.holiday();
 	cal.book();
-	cal.change();
+	cal.busyDays();
 
 	cal.print();
 }

@@ -1,5 +1,30 @@
 #include "Calendar.hpp"
 
+void Calendar::pushHoliday(const Date& date)
+{
+	if (m_size == 0)
+	{
+		m_size++;
+		m_days = new Day[m_size];
+		m_days[0].setDate(date);
+		m_days[0].setIsWeekend(true);
+		return;
+	}
+	Day* newDays = new Day[m_size + 1];
+	for (size_t i = 0; i < m_size; i++)
+	{
+		newDays[i] = m_days[i];
+	}
+	newDays[m_size].setDate(date);
+	newDays[m_size].setIsWeekend(true);
+	m_size++;
+	if (m_days != nullptr)
+	{
+		delete m_days;
+	}
+	m_days = newDays;
+}
+
 void Calendar::pushDay(const Day& day)
 {
 	if (m_size == 0)
@@ -109,6 +134,44 @@ size_t Calendar::meetingLength(const Meeting& meeting)
 	return length;
 }
 
+void Calendar::swapDays(Day& first, Day& second)
+{
+	Day temp(first);
+	first = second;
+	second = temp;
+}
+
+void Calendar::sortDays()
+{
+	for (size_t i = 0; i < m_size - 1; i++)
+	{
+		for (size_t j = 0; j < m_size - i - 1; j++)
+		{
+			if (m_days[j].getDate().getYear() > m_days[j + 1].getDate().getYear())
+			{
+				swapDays(m_days[j], m_days[j + 1]);
+				continue;
+			}
+			else
+			{
+				if (m_days[j].getDate().getYear() == m_days[j + 1].getDate().getYear() && m_days[j].getDate().getMonth() > m_days[j + 1].getDate().getMonth())
+				{
+					swapDays(m_days[j], m_days[j + 1]);
+					continue;
+				}
+				else
+				{
+					if (m_days[j].getDate().getMonth() == m_days[j + 1].getDate().getMonth() && m_days[j].getDate().getDay() > m_days[j + 1].getDate().getDay())
+					{
+						swapDays(m_days[j], m_days[j + 1]);
+						continue;
+					}
+				}
+			}
+		}
+	}
+}
+
 Calendar::Calendar(const char* fileName) :
 	m_days(nullptr),
 	m_size(0)
@@ -170,7 +233,15 @@ void Calendar::book()
 	}
 	else
 	{
-		m_days[dayPos].pushMeeting(Meeting(startTime, endTime, name, note));
+		if (m_days[dayPos].getIsWeekend())
+		{
+			std::cout << "This is a holiday." << std::endl;
+			return;
+		}
+		else
+		{
+			m_days[dayPos].pushMeeting(Meeting(startTime, endTime, name, note));
+		}
 	}
 	
 }
@@ -208,18 +279,27 @@ void Calendar::unbook()
 	}
 	else
 	{
-		size_t meetingPos = findMeeting(dayPos, startTime, endTime);
-		if (meetingPos == 0xffffffff)
+		if (m_days[dayPos].getIsWeekend())
 		{
-			std::cout << "Meeting not found." << std::endl;
+			std::cout << "This is a holiday." << std::endl;
 			return;
+
 		}
 		else
 		{
-			m_days[dayPos].removeMeeting(meetingPos);
-			if (m_days[dayPos].getMeetingSize() == 0)
+			size_t meetingPos = findMeeting(dayPos, startTime, endTime);
+			if (meetingPos == 0xffffffff)
 			{
-				removeDay(dayPos);
+				std::cout << "Meeting not found." << std::endl;
+				return;
+			}
+			else
+			{
+				m_days[dayPos].removeMeeting(meetingPos);
+				if (m_days[dayPos].getMeetingSize() == 0)
+				{
+					removeDay(dayPos);
+				}
 			}
 		}
 	}
@@ -249,15 +329,23 @@ void Calendar::agenda()
 	}
 	else
 	{
-		m_days[dayPos].sortMeetings();
-		size_t meetingSize = m_days[dayPos].getMeetingSize();
-		std::cout << "Meetings: " << std::endl;
-		for (size_t i = 0; i < meetingSize; i++)
+		if (m_days[dayPos].getIsWeekend())
 		{
-			std::cout << "Start time: " << m_days[dayPos].getMeeting(i).getStartTime() << std::endl
-					  << "End time: " << m_days[dayPos].getMeeting(i).getEndTime() << std::endl
-					  << "Name: " << m_days[dayPos].getMeeting(i).getName() << std::endl
-					  << "Note: " << m_days[dayPos].getMeeting(i).getNote() << std::endl << std::endl;
+			std::cout << "This is a holiday." << std::endl;
+			return;
+		}
+		else
+		{
+			m_days[dayPos].sortMeetings();
+			size_t meetingSize = m_days[dayPos].getMeetingSize();
+			std::cout << "Meetings: " << std::endl;
+			for (size_t i = 0; i < meetingSize; i++)
+			{
+				std::cout << "Start time: " << m_days[dayPos].getMeeting(i).getStartTime() << std::endl
+					<< "End time: " << m_days[dayPos].getMeeting(i).getEndTime() << std::endl
+					<< "Name: " << m_days[dayPos].getMeeting(i).getName() << std::endl
+					<< "Note: " << m_days[dayPos].getMeeting(i).getNote() << std::endl << std::endl;
+			}
 		}
 	}
 }
@@ -293,11 +381,19 @@ void Calendar::change()
 	}
 	else
 	{
-		meetingPos = findMeeting(dayPos, startTime);
-		if (meetingPos == 0xffffffff)
+		if (m_days[dayPos].getIsWeekend())
 		{
-			std::cout << "Meeting not found." << std::endl;
+			std::cout << "This is a holiday." << std::endl;
 			return;
+		}
+		else
+		{
+			meetingPos = findMeeting(dayPos, startTime);
+			if (meetingPos == 0xffffffff)
+			{
+				std::cout << "Meeting not found." << std::endl;
+				return;
+			}
 		}
 	}
 
@@ -380,6 +476,218 @@ void Calendar::change()
 	}
 
 
+}
+
+void Calendar::find()
+{
+	//string
+	std::string subStr;
+	std::cout << "Enter word to search for: ";
+	std::cin >> subStr;
+
+	size_t meetingSize;
+	for (size_t i = 0; i < m_size; i++)
+	{
+		if (m_days[i].getIsWeekend())
+		{
+			continue;
+		}
+		else
+		{
+			meetingSize = m_days[i].getMeetingSize();
+			for (size_t j = 0; j < meetingSize; j++)
+			{
+				if (m_days[i].getMeeting(j).getName().find(subStr) != std::string::npos || m_days[i].getMeeting(j).getNote().find(subStr) != std::string::npos)
+				{
+					std::cout << "Date: " << m_days[i].getDate().getYear() << '.' << m_days[i].getDate().getMonth() << '.' << m_days[i].getDate().getDay() << std::endl;
+					std::cout << "Meeting: " << std::endl
+						<< "Start time: " << m_days[i].getMeeting(j).getStartTime() << std::endl
+						<< "Start end: " << m_days[i].getMeeting(j).getEndTime() << std::endl
+						<< "Name: " << m_days[i].getMeeting(j).getName() << std::endl
+						<< "Note: " << m_days[i].getMeeting(j).getNote() << std::endl;
+				}
+			}
+		}
+	}
+}
+
+void Calendar::holiday()
+{
+	//Date
+	size_t year, month, day;
+
+	std::cout << "Enter year: ";
+	std::cin >> year;
+	//todo validate year
+	std::cout << "Enter month: ";
+	std::cin >> month;
+	//todo validate month
+	std::cout << "Enter day: ";
+	std::cin >> day;
+	//todo validate day
+
+	size_t dayPos = findDay(year, month, day);
+	if (dayPos == 0xffffffff)
+	{
+		pushHoliday(Date(year, month, day));
+	}
+	else
+	{
+		m_days[dayPos].setIsWeekend(true);
+	}
+	
+}
+
+void Calendar::busyDays()
+{
+	//From
+	size_t fromYear, fromMonth, fromDay;
+	//to
+	size_t toYear, toMonth, toDay;
+
+	std::cout << "Enter starting year: ";
+	std::cin >> fromYear;
+	//todo validate year
+	std::cout << "Enter startng month: ";
+	std::cin >> fromMonth;
+	//todo validate month
+	std::cout << "Enter starting day: ";
+	std::cin >> fromDay;
+	//todo validate day
+
+	std::cout << "Enter end year: ";
+	std::cin >> toYear;
+	//todo validate year
+	std::cout << "Enter end month: ";
+	std::cin >> toMonth;
+	//todo validate month
+	std::cout << "Enter end day: ";
+	std::cin >> toDay;
+	//todo validate day
+
+	size_t* busyHours = new size_t[m_size]{ 0 };
+
+	for (size_t i = 0; i < m_size; i++)
+	{
+		if (m_days[i].getIsWeekend())
+		{
+			continue;
+		}
+		else
+		{
+			if ((m_days[i].getDate().getYear() >= fromYear && m_days[i].getDate().getMonth() >= fromMonth && m_days[i].getDate().getDay() >= fromDay)
+				&& (m_days[i].getDate().getYear() <= toYear && m_days[i].getDate().getMonth() <= toMonth && m_days[i].getDate().getDay() <= toDay))
+			{
+				size_t meetingSize = m_days[i].getMeetingSize();
+				for (size_t j = 0; j < meetingSize; j++)
+				{
+					busyHours[i] += meetingLength(m_days[i].getMeeting(j));
+				}
+			}
+		}
+	}
+
+	for (size_t i = 0; i < m_size - 1; i++)
+	{
+		for (size_t j = 0; j < m_size - i - 1; j++)
+		{
+			if (busyHours[j] < busyHours[j + 1])
+			{
+				size_t temp = busyHours[j];
+				busyHours[j] = busyHours[j + 1];
+				busyHours[j + 1] = temp;
+
+				swapDays(m_days[j], m_days[j + 1]);
+			}
+		}
+	}
+
+	for (size_t i = 0; i < m_size; i++)
+	{
+		if (busyHours[i] == 0)
+		{
+			break;
+		}
+		else
+		{
+			std::cout << "Date: " << m_days[i].getDate().getYear() << '.' << m_days[i].getDate().getMonth() << '.' << m_days[i].getDate().getDay() << std::endl;
+			size_t meetingSize = m_days[i].getMeetingSize();
+			for (size_t j = 0; j < meetingSize; j++)
+			{
+				std::cout << "Meeting: " << std::endl;
+				std::cout << "Start time: " << m_days[i].getMeeting(j).getStartTime() << std::endl;
+				std::cout << "End time: " << m_days[i].getMeeting(j).getEndTime() << std::endl;
+				std::cout << "Name: " << m_days[i].getMeeting(j).getName() << std::endl;
+				std::cout << "Note: " << m_days[i].getMeeting(j).getNote() << std::endl;
+			}
+		}
+	}
+	delete[] busyHours;
+}
+
+void Calendar::findSlot()
+{
+	//Date
+	size_t year, month, day;
+	//hours
+	size_t meetingLength;
+	std::string name, note;
+
+	std::cout << "Enter year: ";
+	std::cin >> year;
+	//todo validate year
+	std::cout << "Enter month: ";
+	std::cin >> month;
+	//todo validate month
+	std::cout << "Enter day: ";
+	std::cin >> day;
+	//todo validate day
+
+	std::cout << "Enter meeting length: ";
+	std::cin >> meetingLength;
+	//todo validate meetingLength
+	std::cout << "Enter name: ";
+	std::cin >> name;
+	std::cin.ignore();
+	std::cout << "Enter note: ";
+	std::getline(std::cin, note);
+
+
+	for (size_t i = 0; i < m_size; i++)
+	{
+		if (m_days[i].getIsWeekend())
+		{
+			continue;
+		}
+		if (m_days[i].getDate().getYear() >= year && m_days[i].getDate().getMonth() >= month && m_days[i].getDate().getDay() >= day)
+		{
+			m_days[i].sortMeetings();
+			size_t meetingSize = m_days[i].getMeetingSize();
+			if (meetingSize > 0)
+			{
+				if (800 + meetingLength <= m_days[i].getMeeting(0).getStartTime())
+				{
+					m_days[i].pushMeeting(Meeting(800, 800 + meetingLength, name, note));
+					return;
+				}
+			}
+			for (size_t j = 0; j < meetingSize - 1; j++)
+			{
+				if (m_days[i].getMeeting(j).getEndTime() <= 1700)
+				{
+					if (m_days[i].getMeeting(j).getEndTime() + meetingLength <= m_days[i].getMeeting(j + 1).getStartTime())
+					{
+						m_days[i].pushMeeting(Meeting(m_days[i].getMeeting(j).getEndTime(), m_days[i].getMeeting(j).getEndTime() + meetingLength, name, note));
+						return;
+					}
+				}
+			}
+		}
+	}
+	sortDays();
+	Date lastDate = m_days[m_size - 1].getDate();
+	lastDate.nextDay();
+	pushDay(Day(lastDate, Meeting(800, 800 + meetingLength, name, note)));
 }
 
 void Calendar::print()

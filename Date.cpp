@@ -29,6 +29,11 @@ size_t Date::getDay() const
 	return m_day;
 }
 
+void Date::nextDay()
+{
+	m_day++;//todo validate
+}
+
 bool Date::operator==(const Date& other)
 {
 	if (m_year == other.m_year && m_month == other.m_month && m_day == other.m_day)

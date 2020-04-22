@@ -18,6 +18,7 @@ public:
 	size_t getYear() const;
 	size_t getMonth() const;
 	size_t getDay() const;
+	void nextDay();
 	bool operator==(const Date& other);
 
 };

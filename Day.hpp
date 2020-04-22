@@ -17,7 +17,8 @@ public:
 
 	Day();
 	Day(const Date& date, const Meeting& meeting);
-	~Day();
+
+	Day& operator=(const Day& other);
 
 	Date& getDate();
 	size_t getMeetingSize();
@@ -25,5 +26,8 @@ public:
 	void removeMeeting(size_t position);
 	void pushMeeting(const Meeting& meeting);
 	void sortMeetings();
+	void setIsWeekend(bool isWeekend);
+	bool getIsWeekend();
+	void setDate(const Date& date);
 };
 
