@@ -17,7 +17,6 @@ public:
 
 	Day();
 	Day(const Date& date, const Meeting& meeting);
-
 	Day& operator=(const Day& other);
 
 	Date& getDate();

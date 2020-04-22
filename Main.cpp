@@ -3,12 +3,9 @@
 
 int main()
 {
-	Calendar cal("Test.txt");
+	Calendar cal(TEST_FILE);
 	cal.book();
 	cal.book();
-	cal.holiday();
-	cal.book();
-	cal.busyDays();
 
 	cal.print();
 }

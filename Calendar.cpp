@@ -50,7 +50,7 @@ void Calendar::pushDay(const Day& day)
 
 void Calendar::pushMeeting(const Date& date, const Meeting& meeting)
 {
-	size_t dayPos = findDay(date.getYear(), date.getMonth(), date.getDay());
+	size_t dayPos = findDay(date);
 	if (dayPos == 0xffffffff)
 	{
 		pushDay(Day(date, meeting));
@@ -85,11 +85,11 @@ void Calendar::removeDay(size_t position)
 	m_days = newDays;
 }
 
-size_t Calendar::findDay(size_t year, size_t month, size_t day)
+size_t Calendar::findDay(const Date& date)
 {
 	for (size_t i = 0; i < m_size; i++)
 	{
-		if (m_days[i].getDate().getYear() == year && m_days[i].getDate().getMonth() == month && m_days[i].getDate().getDay() == day)
+		if (m_days[i].getDate() == date)
 		{
 			return i;
 		}
@@ -172,6 +172,206 @@ void Calendar::sortDays()
 	}
 }
 
+Date Calendar::cinDate()
+{
+	std::string dateStr;
+	std::string yearStr, monthStr, dayStr;
+	do
+	{
+		std::cout << "Enter date in format Year.Month.Day " << std::endl;
+		std::cin >> dateStr;
+		while(!ValidateDateFormat(dateStr))
+		{
+			std::cout << "Invalid format. " << std::endl;
+			std::cout << "Enter date in format Year.Month.Day " << std::endl;
+			std::cin >> dateStr;
+		}
+		size_t firstDot = dateStr.find('.');
+		size_t secondDot = dateStr.rfind('.');
+		yearStr = dateStr.substr(0, firstDot);
+		monthStr = dateStr.substr(firstDot + 1, secondDot - firstDot - 1);
+		dayStr = dateStr.substr(secondDot + 1);
+
+	} while (!ValidateDate(yearStr, monthStr, dayStr));
+	size_t year, month, day;
+	year = std::stoul(yearStr);
+	month = std::stoul(monthStr);
+	day = std::stoul(dayStr);
+	return Date(year, month, day);
+}
+
+bool Calendar::ValidateDateFormat(const std::string& dateStr)
+{
+	size_t firstDot = dateStr.find('.');
+	size_t secondDot = dateStr.rfind('.');
+	if (firstDot == std::string::npos)
+	{
+		return false;
+	}
+	if (secondDot == firstDot + 1)
+	{
+		return false;
+	}
+	if (firstDot == 0)
+	{
+		return false;
+	}
+	if (secondDot == dateStr.length() - 1)
+	{
+		return false;
+	}
+	if (firstDot == secondDot)
+	{
+		return false;
+	}
+	if (dateStr.find('.', firstDot + 1) != secondDot)
+	{
+		return false;
+	}
+	return true;
+}
+
+bool Calendar::ValidateDate(const std::string& yearStr, const std::string& monthStr, const std::string& dayStr)
+{
+	if (yearStr.find_first_not_of("0123456789") != std::string::npos)
+	{
+		std::cout << "Invalid Year. " << std::endl;
+		return false;
+	}
+	if (monthStr.find_first_not_of("0123456789") != std::string::npos)
+	{
+		std::cout << "Invalid Month. " << std::endl;
+		return false;
+	}
+	if (dayStr.find_first_not_of("0123456789") != std::string::npos)
+	{
+		std::cout << "Invalid day. " << std::endl;
+		return false;
+	}
+	size_t year = std::stoul(yearStr), month = std::stoul(monthStr), day = std::stoul(dayStr);
+	if (month < 1 || month > 12)
+	{
+		std::cout << "Invalid Month. " << std::endl;
+		return false;
+	}
+	if (Date(year,month,day).isLeapYear())
+	{
+		if (month == 2)
+		{
+			if (DAYS_IN_MONTH[1] + 1 < day)
+			{
+				std::cout << "Invalid Day. " << std::endl;
+				return false;
+			}
+			else
+			{
+				return true;
+			}
+		}
+		else
+		{
+			if (DAYS_IN_MONTH[month - 1] < day)
+			{
+				std::cout << "Invalid Day. " << std::endl;
+				return false;
+			}
+			else
+			{
+				return true;
+			}
+		}
+	}
+	else
+	{
+		if (DAYS_IN_MONTH[month - 1] < day)
+		{
+			std::cout << "Invalid Day. " << std::endl;
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+	return true;
+}
+
+size_t Calendar::cinTime(const char* startOrEnd)
+{
+	std::string timeStr;
+	std::string hoursStr, minutesStr;
+	do
+	{
+		std::cout << "Enter " << startOrEnd << "time in format Hours:Minutes " << std::endl;
+		std::cin >> timeStr;
+		while (!ValidateTimeFormat(timeStr))
+		{
+			std::cout << "Invalid format. " << std::endl;
+			std::cout << "Enter " << startOrEnd << "time in format Hours:Minutes " << std::endl;
+			std::cin >> timeStr;
+		}
+		size_t colum = timeStr.find(':');
+		hoursStr = timeStr.substr(0, colum);
+		minutesStr = timeStr.substr(colum + 1);
+
+	} while (!ValidateTime(hoursStr, minutesStr));
+	size_t time = 0;
+	time = std::stoul(minutesStr);
+	time += std::stoul(hoursStr)*100;
+	return time;
+}
+
+bool Calendar::ValidateTimeFormat(const std::string& timeStr)
+{
+	size_t colum = timeStr.find(':');
+	size_t otherColum = timeStr.rfind(':');
+	if (colum == std::string::npos)
+	{
+		return false;
+	}
+	if (otherColum != colum)
+	{
+		return false;
+	}
+	if (colum == 0)
+	{
+		return false;
+	}
+	if (colum == timeStr.length() - 1)
+	{
+		return 0;
+	}
+	return true;
+
+}
+
+bool Calendar::ValidateTime(const std::string& hoursStr, const std::string& minutesStr)
+{
+	if (hoursStr.find_first_not_of("0123456789") != std::string::npos)
+	{
+		std::cout << "Invalid Hours. " << std::endl;
+		return false;
+	}
+	if (minutesStr.find_first_not_of("0123456789") != std::string::npos)
+	{
+		std::cout << "Invalid Minutes. " << std::endl;
+		return false;
+	}
+	size_t hours = std::stoul(hoursStr), minutes = std::stoul(minutesStr);
+	if (hours > 24)
+	{
+		std::cout << "Invalid Hours. " << std::endl;
+		return false;
+	}
+	if (minutes > 59)
+	{
+		std::cout << "Invalid Minutes. " << std::endl;
+		return false;
+	}
+	return true;
+
+}
+
 Calendar::Calendar(const char* fileName) :
 	m_days(nullptr),
 	m_size(0)
@@ -194,42 +394,31 @@ Calendar::Calendar(const char* fileName) :
 
 Calendar::~Calendar()
 {
+	for (size_t i = 0; i < m_size; i++)
+	{
+		delete[] &(m_days[i].getMeeting(0));
+	}
 	delete[] m_days;
 }
 
 void Calendar::book()
 {
 	//Date
-	size_t year, month, day;
+	Date date(cinDate());
 	//Meeting
-	size_t startTime, endTime;
+	size_t startTime = cinTime("start"), endTime = cinTime("end");
 	std::string name, note;
 
-	std::cout << "Enter year: ";
-	std::cin >> year;
-	//todo validate year
-	std::cout << "Enter month: ";
-	std::cin >> month;
-	//todo validate month
-	std::cout << "Enter day: ";
-	std::cin >> day;
-	//todo validate day
-	std::cout << "Enter start time: ";
-	std::cin >> startTime;
-	//todo validate startTime
-	std::cout << "Enter end time: ";
-	std::cin >> endTime;
-	//todo validate endTime
 	std::cout << "Enter name: ";
 	std::cin >> name;
 	std::cin.ignore();
 	std::cout << "Enter note: ";
 	std::getline(std::cin, note);
 
-	size_t dayPos = findDay(year, month, day);
+	size_t dayPos = findDay(date);
 	if (dayPos == 0xffffffff)
 	{
-		pushDay(Day(Date(year, month, day), Meeting(startTime, endTime, name, note)));
+		pushDay(Day(date, Meeting(startTime, endTime, name, note)));
 	}
 	else
 	{
@@ -249,29 +438,11 @@ void Calendar::book()
 void Calendar::unbook()
 {
 	//Date
-	size_t year, month, day;
-	//startTime
-	size_t startTime;
-	//endTime
-	size_t endTime;
+	Date date(cinDate());
+	//startTime, endTime
+	size_t startTime = cinTime("start"), endTime = cinTime("end");
 
-	std::cout << "Enter year: ";
-	std::cin >> year;
-	//todo validate year
-	std::cout << "Enter month: ";
-	std::cin >> month;
-	//todo validate month
-	std::cout << "Enter day: ";
-	std::cin >> day;
-	//todo validate day
-	std::cout << "Enter start time: ";
-	std::cin >> startTime;
-	//todo validate startTime
-	std::cout << "Enter end time: ";
-	std::cin >> endTime;
-	//todo validate endTime
-
-	size_t dayPos = findDay(year, month, day);
+	size_t dayPos = findDay(date);
 	if (dayPos == 0xffffffff)
 	{
 		std::cout << "Day not found." << std::endl;
@@ -309,19 +480,9 @@ void Calendar::unbook()
 void Calendar::agenda()
 {
 	//Date
-	size_t year, month, day;
+	Date date(cinDate());
 
-	std::cout << "Enter year: ";
-	std::cin >> year;
-	//todo validate year
-	std::cout << "Enter month: ";
-	std::cin >> month;
-	//todo validate month
-	std::cout << "Enter day: ";
-	std::cin >> day;
-	//todo validate day
-
-	size_t dayPos = findDay(year, month, day);
+	size_t dayPos = findDay(date);
 	if (dayPos == 0xffffffff)
 	{
 		std::cout << "Day not found." << std::endl;
@@ -338,13 +499,9 @@ void Calendar::agenda()
 		{
 			m_days[dayPos].sortMeetings();
 			size_t meetingSize = m_days[dayPos].getMeetingSize();
-			std::cout << "Meetings: " << std::endl;
 			for (size_t i = 0; i < meetingSize; i++)
 			{
-				std::cout << "Start time: " << m_days[dayPos].getMeeting(i).getStartTime() << std::endl
-					<< "End time: " << m_days[dayPos].getMeeting(i).getEndTime() << std::endl
-					<< "Name: " << m_days[dayPos].getMeeting(i).getName() << std::endl
-					<< "Note: " << m_days[dayPos].getMeeting(i).getNote() << std::endl << std::endl;
+				std::cout << m_days[dayPos].getMeeting(i);
 			}
 		}
 	}
@@ -353,26 +510,13 @@ void Calendar::agenda()
 void Calendar::change()
 {
 	//Date
-	size_t year, month, day;
+	Date date(cinDate());
 	//startTime
-	size_t startTime;
+	size_t startTime = cinTime("start");
 	//option
 	size_t option;
 
-	std::cout << "Enter year: ";
-	std::cin >> year;
-	//todo validate year
-	std::cout << "Enter month: ";
-	std::cin >> month;
-	//todo validate month
-	std::cout << "Enter day: ";
-	std::cin >> day;
-	//todo validate day
-	std::cout << "Enter start time: ";
-	std::cin >> startTime;
-	//todo validate startTime
-
-	size_t dayPos = findDay(year, month, day);
+	size_t dayPos = findDay(date);
 	size_t meetingPos;
 	if (dayPos == 0xffffffff)
 	{
@@ -413,30 +557,20 @@ void Calendar::change()
 	//newValue
 	Meeting savedMeeting = m_days[dayPos].getMeeting(meetingPos);
 	std::string name;
+
 	size_t duration = 0;//meeting duration
 	switch (option)
 	{
 	case 1:
-		std::cout << "Enter new year: ";
-		std::cin >> year;
-		//todo validate year
-		std::cout << "Enter new month: ";
-		std::cin >> month;
-		//todo validate month
-		std::cout << "Enter new day: ";
-		std::cin >> day;
-		//todo validate day
+		date = cinDate();
 		m_days[dayPos].removeMeeting(meetingPos);
-		pushMeeting(Date(year, month, day), savedMeeting);
+		pushMeeting(date, savedMeeting);
 		break;
 	case 2:
-		std::cout << "Enter new start time: ";
-		std::cin >> startTime;
-		//todo validate startTime
+		startTime = cinTime("new start");
 		m_days[dayPos].removeMeeting(meetingPos);
 		duration = meetingLength(savedMeeting);
 		savedMeeting.setStartTime(startTime);
-		//todo check if end time is valid after adding duration
 		if (startTime >= savedMeeting.getEndTime())
 		{
 			if ((savedMeeting.getStartTime() % 100 + duration % 100) > 59)
@@ -451,9 +585,7 @@ void Calendar::change()
 		m_days[dayPos].pushMeeting(savedMeeting);
 		break;
 	case 3:
-		std::cout << "Enter new end time: ";
-		std::cin >> startTime;
-		//todo validate startTime
+		startTime = cinTime("new end");
 		m_days[dayPos].removeMeeting(meetingPos);
 		savedMeeting.setEndTime(startTime);
 		m_days[dayPos].pushMeeting(savedMeeting);
@@ -474,8 +606,6 @@ void Calendar::change()
 		m_days[dayPos].pushMeeting(savedMeeting);
 		break;
 	}
-
-
 }
 
 void Calendar::find()
@@ -499,12 +629,8 @@ void Calendar::find()
 			{
 				if (m_days[i].getMeeting(j).getName().find(subStr) != std::string::npos || m_days[i].getMeeting(j).getNote().find(subStr) != std::string::npos)
 				{
-					std::cout << "Date: " << m_days[i].getDate().getYear() << '.' << m_days[i].getDate().getMonth() << '.' << m_days[i].getDate().getDay() << std::endl;
-					std::cout << "Meeting: " << std::endl
-						<< "Start time: " << m_days[i].getMeeting(j).getStartTime() << std::endl
-						<< "Start end: " << m_days[i].getMeeting(j).getEndTime() << std::endl
-						<< "Name: " << m_days[i].getMeeting(j).getName() << std::endl
-						<< "Note: " << m_days[i].getMeeting(j).getNote() << std::endl;
+					std::cout << "Date: " << m_days[i].getDate() << std::endl;
+					std::cout << m_days[i].getMeeting(j);
 				}
 			}
 		}
@@ -514,22 +640,12 @@ void Calendar::find()
 void Calendar::holiday()
 {
 	//Date
-	size_t year, month, day;
+	Date date(cinDate());
 
-	std::cout << "Enter year: ";
-	std::cin >> year;
-	//todo validate year
-	std::cout << "Enter month: ";
-	std::cin >> month;
-	//todo validate month
-	std::cout << "Enter day: ";
-	std::cin >> day;
-	//todo validate day
-
-	size_t dayPos = findDay(year, month, day);
+	size_t dayPos = findDay(date);
 	if (dayPos == 0xffffffff)
 	{
-		pushHoliday(Date(year, month, day));
+		pushHoliday(date);
 	}
 	else
 	{
@@ -541,29 +657,11 @@ void Calendar::holiday()
 void Calendar::busyDays()
 {
 	//From
-	size_t fromYear, fromMonth, fromDay;
+	std::cout << "From when to start the search?" << std::endl;
+	Date fromDate(cinDate());
 	//to
-	size_t toYear, toMonth, toDay;
-
-	std::cout << "Enter starting year: ";
-	std::cin >> fromYear;
-	//todo validate year
-	std::cout << "Enter startng month: ";
-	std::cin >> fromMonth;
-	//todo validate month
-	std::cout << "Enter starting day: ";
-	std::cin >> fromDay;
-	//todo validate day
-
-	std::cout << "Enter end year: ";
-	std::cin >> toYear;
-	//todo validate year
-	std::cout << "Enter end month: ";
-	std::cin >> toMonth;
-	//todo validate month
-	std::cout << "Enter end day: ";
-	std::cin >> toDay;
-	//todo validate day
+	std::cout << "When to stop the search?" << std::endl;
+	Date toDate(cinDate());
 
 	size_t* busyHours = new size_t[m_size]{ 0 };
 
@@ -575,8 +673,8 @@ void Calendar::busyDays()
 		}
 		else
 		{
-			if ((m_days[i].getDate().getYear() >= fromYear && m_days[i].getDate().getMonth() >= fromMonth && m_days[i].getDate().getDay() >= fromDay)
-				&& (m_days[i].getDate().getYear() <= toYear && m_days[i].getDate().getMonth() <= toMonth && m_days[i].getDate().getDay() <= toDay))
+			if ((m_days[i].getDate() >= fromDate)
+				&& (m_days[i].getDate() <= toDate))
 			{
 				size_t meetingSize = m_days[i].getMeetingSize();
 				for (size_t j = 0; j < meetingSize; j++)
@@ -610,15 +708,11 @@ void Calendar::busyDays()
 		}
 		else
 		{
-			std::cout << "Date: " << m_days[i].getDate().getYear() << '.' << m_days[i].getDate().getMonth() << '.' << m_days[i].getDate().getDay() << std::endl;
+			std::cout << "Date: " << m_days[i].getDate() << std::endl;
 			size_t meetingSize = m_days[i].getMeetingSize();
 			for (size_t j = 0; j < meetingSize; j++)
 			{
-				std::cout << "Meeting: " << std::endl;
-				std::cout << "Start time: " << m_days[i].getMeeting(j).getStartTime() << std::endl;
-				std::cout << "End time: " << m_days[i].getMeeting(j).getEndTime() << std::endl;
-				std::cout << "Name: " << m_days[i].getMeeting(j).getName() << std::endl;
-				std::cout << "Note: " << m_days[i].getMeeting(j).getNote() << std::endl;
+				std::cout << m_days[i].getMeeting(j);
 			}
 		}
 	}
@@ -628,24 +722,11 @@ void Calendar::busyDays()
 void Calendar::findSlot()
 {
 	//Date
-	size_t year, month, day;
+	Date date(cinDate());
 	//hours
-	size_t meetingLength;
+	size_t meetingLength = cinTime("meeting");
 	std::string name, note;
 
-	std::cout << "Enter year: ";
-	std::cin >> year;
-	//todo validate year
-	std::cout << "Enter month: ";
-	std::cin >> month;
-	//todo validate month
-	std::cout << "Enter day: ";
-	std::cin >> day;
-	//todo validate day
-
-	std::cout << "Enter meeting length: ";
-	std::cin >> meetingLength;
-	//todo validate meetingLength
 	std::cout << "Enter name: ";
 	std::cin >> name;
 	std::cin.ignore();
@@ -659,7 +740,7 @@ void Calendar::findSlot()
 		{
 			continue;
 		}
-		if (m_days[i].getDate().getYear() >= year && m_days[i].getDate().getMonth() >= month && m_days[i].getDate().getDay() >= day)
+		if (m_days[i].getDate() >= date)
 		{
 			m_days[i].sortMeetings();
 			size_t meetingSize = m_days[i].getMeetingSize();
@@ -685,24 +766,25 @@ void Calendar::findSlot()
 		}
 	}
 	sortDays();
-	Date lastDate = m_days[m_size - 1].getDate();
-	lastDate.nextDay();
-	pushDay(Day(lastDate, Meeting(800, 800 + meetingLength, name, note)));
+	date = m_days[m_size - 1].getDate();
+	date.nextDay();
+	pushDay(Day(date, Meeting(800, 800 + meetingLength, name, note)));
 }
 
-void Calendar::print()
+void Calendar::print()//temporary for testing
 {
 	for (size_t i = 0; i < m_size; i++)
 	{
 		std::cout << "Date: " << m_days[i].getDate().getYear() << "." << m_days[i].getDate().getMonth() << "." << m_days[i].getDate().getDay() << std::endl;
+		if (m_days[i].getIsWeekend())
+		{
+			std::cout << "Holiday!" << std::endl;
+			continue;
+		}
 		size_t meetingSize = m_days[i].getMeetingSize();
 		for (size_t j = 0; j < meetingSize; j++)
 		{
-			std::cout << "Meeting: " << std::endl
-			<< m_days[i].getMeeting(j).getStartTime() << std::endl
-			<< m_days[i].getMeeting(j).getEndTime() << std::endl
-			<< m_days[i].getMeeting(j).getName() << std::endl
-			<< m_days[i].getMeeting(j).getNote() << std::endl;
+			std::cout << m_days[i].getMeeting(j);
 		}
 	}
 }

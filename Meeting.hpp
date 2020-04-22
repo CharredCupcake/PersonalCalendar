@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include <string>
 
 class Meeting
@@ -23,6 +24,8 @@ public:
 	void setName(std::string name);
 	std::string& getNote();
 	void setNote(std::string note);
+
+	friend std::ostream& operator<<(std::ostream& out, const Meeting& meeting);
 
 };
 
