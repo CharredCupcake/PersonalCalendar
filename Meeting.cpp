@@ -58,8 +58,8 @@ void Meeting::setNote(std::string note)
 
 std::ostream& operator<<(std::ostream& out, const Meeting& meeting)
 {
-	out << "~Meeting~" << std::endl;
-	out << "Start time: ";
+	//out << "~Meeting~" << std::endl;
+	//out << "Start time: ";
 	if (meeting.m_startTime / 100 < 10)
 	{
 		out << '0' << meeting.m_startTime / 100 << ':';
@@ -76,7 +76,7 @@ std::ostream& operator<<(std::ostream& out, const Meeting& meeting)
 	{
 		out << meeting.m_startTime % 100 << std::endl;
 	}
-	out << "End time: ";
+	//out << "End time: ";
 	if (meeting.m_endTime / 100 < 10)
 	{
 		out << '0' << meeting.m_endTime / 100 << ':';
@@ -93,7 +93,7 @@ std::ostream& operator<<(std::ostream& out, const Meeting& meeting)
 	{
 		out << meeting.m_endTime % 100 << std::endl;
 	}
-	out << "Name: " << meeting.m_name << std::endl;
-	out << "Note: " << meeting.m_note << std::endl;
+	out << meeting.m_name << std::endl;
+	out << meeting.m_note << std::endl;
 	return out;
 }

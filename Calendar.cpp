@@ -372,22 +372,85 @@ bool Calendar::ValidateTime(const std::string& hoursStr, const std::string& minu
 
 }
 
+Calendar::Calendar() :
+	m_days(nullptr),
+	m_size(0)
+{
+}
+
 Calendar::Calendar(const char* fileName) :
 	m_days(nullptr),
 	m_size(0)
 {
 	std::ofstream outStream;
-	outStream.open(fileName);
+	outStream.open(fileName, std::ios::app);
 	outStream.close();
 	std::ifstream inStream;
 	inStream.open(fileName);
 	if (inStream.peek() == EOF)
 	{
-		std::cout << "Empty" << std::endl;// do nothing.
 	}
 	else
 	{
-		std::cout << "Not empty" << std::endl;// load calendar from file
+		do
+		{
+
+
+			std::string dateStr;
+			bool isWeekend;
+
+			char tempChar = 0;
+			while ((tempChar = inStream.get()) != '\n')
+			{
+				dateStr.push_back(tempChar);
+			}
+
+			isWeekend = bool(inStream.get() - '0');
+			inStream.ignore();
+
+			size_t firstDot = dateStr.find('.'), secondDot = dateStr.rfind('.');
+			std::string yearStr = dateStr.substr(0, firstDot), monthStr = dateStr.substr(firstDot + 1, secondDot - firstDot - 1), dayStr = dateStr.substr(secondDot + 1);
+			Date date(std::stoul(yearStr), std::stoul(monthStr), std::stoul(dayStr));
+
+			if (isWeekend)
+			{
+				pushHoliday(date);
+			}
+			else
+			{
+				size_t startTime = 0, endTime = 0;
+				std::string name, note;
+
+				startTime += size_t(inStream.get() - '0') * 1000 + size_t(inStream.get() - '0') * 100;
+				inStream.ignore();
+				startTime += size_t(inStream.get() - '0') * 10 + size_t(inStream.get() - '0');
+				inStream.ignore();
+				endTime += size_t(inStream.get() - '0') * 1000 + size_t(inStream.get() - '0') * 100;
+				inStream.ignore();
+				endTime += size_t(inStream.get() - '0') * 10 + size_t(inStream.get() - '0');
+				inStream.ignore();
+
+				while ((tempChar = inStream.get()) != '\n')
+				{
+					name.push_back(tempChar);
+				}
+
+				while ((tempChar = inStream.get()) != '\n')
+				{
+					note.push_back(tempChar);
+				}
+
+				size_t dayPos = findDay(date);
+				if (dayPos == 0xffffffff)
+				{
+					pushDay(Day(date, Meeting(startTime, endTime, name, note)));
+				}
+				else
+				{
+					m_days[dayPos].pushMeeting(Meeting(startTime, endTime, name, note));
+				}
+			}
+		} while (inStream.peek() != EOF);
 	}
 	inStream.close();
 }
@@ -399,6 +462,174 @@ Calendar::~Calendar()
 		delete[] &(m_days[i].getMeeting(0));
 	}
 	delete[] m_days;
+}
+
+void Calendar::open(std::string& fileName)
+{
+	std::cout << "Enter file name to open." << std::endl;
+	std::cin >> fileName;
+	size_t dotPos = fileName.find('.');
+	if (dotPos == std::string::npos)
+	{
+		fileName += ".txt";
+	}
+	else
+	{
+		if (fileName.find('txt', dotPos + 1) != dotPos + 1)
+		{
+			fileName += ".txt";
+		}
+	}
+
+	this->Calendar::Calendar(fileName.c_str());
+}
+
+void Calendar::close(std::string& fileName)
+{
+	std::cout << "Close without saving?" << std::endl;
+	size_t option = 0;
+	do
+	{
+		std::cout << "(1) Save." << std::endl;
+		std::cout << "(2) Save As." << std::endl;
+		std::cout << "(3) Cancel." << std::endl;
+		std::cout << "(4) Close." << std::endl;
+		std::cin >> option;
+
+	} while (option < 1 || option > 4);
+	size_t dotPos;
+	switch (option)
+	{
+	case 1:
+		this->save(fileName);
+		break;
+	case 2:
+		std::cout << "Enter file name." << std::endl;
+		std::cin >> fileName;
+		dotPos = fileName.find('.');
+		if (dotPos == std::string::npos)
+		{
+			fileName += ".txt";
+		}
+		else
+		{
+			if (fileName.find('txt', dotPos + 1) != dotPos + 1)
+			{
+				fileName += ".txt";
+			}
+		}
+		this->save(fileName);
+		break;
+	case 3:
+		break;
+	case 4:
+		this->~Calendar();
+		break;
+	}
+
+}
+
+void Calendar::save(std::string& fileName)
+{
+	sortDays();
+	for (size_t i = 0; i < m_size; i++)
+	{
+		if (!m_days[i].getIsWeekend())
+		{
+			m_days[i].sortMeetings();
+		}
+	}
+	std::ofstream outStream;
+	outStream.open(fileName, std::ofstream::trunc);
+	for (size_t i = 0; i < m_size; i++)
+	{
+		if (!m_days[i].getIsWeekend())
+		{
+			size_t meetingSize = m_days[i].getMeetingSize();
+			for (size_t j = 0; j < meetingSize; j++)
+			{
+				outStream << m_days[i].getDate();
+				outStream << m_days[i].getIsWeekend() << std::endl;
+				outStream << m_days[i].getMeeting(j);
+			}
+		}
+		else
+		{
+			outStream << m_days[i].getDate();
+			outStream << m_days[i].getIsWeekend() << std::endl;
+		}
+
+	}
+	outStream.close();
+}
+
+void Calendar::help()
+{
+	std::cout << "Commands: " << std::endl;
+	std::cout << "Open - Open new calendar." << std::endl;
+	std::cout << "Close - Close currently open calendar." << std::endl;
+	std::cout << "Save - Save calendar in the same file." << std::endl;
+	std::cout << "Save as - Save calendar in a different file." << std::endl;
+	std::cout << "Help - List of all commands." << std::endl;
+	std::cout << "Exit - Exit the aplication." << std::endl;
+	std::cout << "Book <date> <start time> <end time> <name> <note> - Create a new meeting." << std::endl;
+	std::cout << "Unbook <date> <start time> <end time> - Delete existing meeting." << std::endl;
+	std::cout << "Agenda <date> - Show all meetings on this date." << std::endl;
+	std::cout << "Change <date> <start time> - Change meeting at this date." << std::endl;
+	std::cout << "Find <key word> - List all meetings with the key word either in their name or note." << std::endl;
+	std::cout << "Holiday <date> - Make this date a holiday." << std::endl;
+	std::cout << "Busy days <start date> <end date> - List all days from start date to end date ordered descending by work hours." << std::endl;
+	std::cout << "Find slot <date> <hours> - Finds and books the first possible meeting from date with hours length." << std::endl;
+	std::cout << "Holiday <date> - Make this date a holiday." << std::endl;
+}
+
+void Calendar::exit(std::string& fileName, bool fileIsOpen)
+{
+	if (fileIsOpen)
+	{
+		std::cout << "Exit without saving?" << std::endl;
+		size_t option = 0;
+		do
+		{
+			std::cout << "(1) Save." << std::endl;
+			std::cout << "(2) Save As." << std::endl;
+			std::cout << "(3) Cancel." << std::endl;
+			std::cout << "(4) Exit." << std::endl;
+			std::cin >> option;
+
+		} while (option < 1 || option > 4);
+		size_t dotPos;
+		switch (option)
+		{
+		case 1:
+			this->save(fileName);
+			break;
+		case 2:
+			std::cout << "Enter file name." << std::endl;
+			std::cin >> fileName;
+			dotPos = fileName.find('.');
+			if (dotPos == std::string::npos)
+			{
+				fileName += ".txt";
+			}
+			else
+			{
+				if (fileName.find('txt', dotPos + 1) != dotPos + 1)
+				{
+					fileName += ".txt";
+				}
+			}
+			this->save(fileName);
+			break;
+		case 3:
+			break;
+		case 4:
+			break;
+		}
+	}
+
+	std::exit(0);
+	
 }
 
 void Calendar::book()
@@ -516,8 +747,8 @@ void Calendar::change()
 	//option
 	size_t option;
 
-	size_t dayPos = findDay(date);
 	size_t meetingPos;
+	size_t dayPos = findDay(date);
 	if (dayPos == 0xffffffff)
 	{
 		std::cout << "Day not found." << std::endl;
@@ -769,22 +1000,4 @@ void Calendar::findSlot()
 	date = m_days[m_size - 1].getDate();
 	date.nextDay();
 	pushDay(Day(date, Meeting(800, 800 + meetingLength, name, note)));
-}
-
-void Calendar::print()//temporary for testing
-{
-	for (size_t i = 0; i < m_size; i++)
-	{
-		std::cout << "Date: " << m_days[i].getDate().getYear() << "." << m_days[i].getDate().getMonth() << "." << m_days[i].getDate().getDay() << std::endl;
-		if (m_days[i].getIsWeekend())
-		{
-			std::cout << "Holiday!" << std::endl;
-			continue;
-		}
-		size_t meetingSize = m_days[i].getMeetingSize();
-		for (size_t j = 0; j < meetingSize; j++)
-		{
-			std::cout << m_days[i].getMeeting(j);
-		}
-	}
 }

@@ -29,10 +29,18 @@ private:
 	bool ValidateTimeFormat(const std::string& timeStr);
 	bool ValidateTime(const std::string& hoursStr, const std::string& minutesStr);
 
+
 public:
 
+	Calendar();
 	Calendar(const char* fileName);
 	~Calendar();
+
+	void open(std::string& fileName);
+	void close(std::string& fileName);
+	void save(std::string& fileName);
+	static void help();
+	void exit(std::string& fileName, bool fileIsOpen);
 
 	void book();
 	void unbook();
@@ -42,9 +50,5 @@ public:
 	void holiday();
 	void busyDays();
 	void findSlot();
-	void findSlotWith();
-	void merge();
-
-	void print();//temporary for testing
 };
 

@@ -124,6 +124,6 @@ bool Date::operator<=(const Date& other)
 
 std::ostream& operator<<(std::ostream& out, const Date& date)
 {
-	out << date.m_year << '.' << date.m_month << '.' << date.m_day;
+	out << date.m_year << '.' << date.m_month << '.' << date.m_day << '\n';
 	return out;
 }
