@@ -580,7 +580,6 @@ void Calendar::help()
 	std::cout << "Holiday <date> - Make this date a holiday." << std::endl;
 	std::cout << "Busy days <start date> <end date> - List all days from start date to end date ordered descending by work hours." << std::endl;
 	std::cout << "Find slot <date> <hours> - Finds and books the first possible meeting from date with hours length." << std::endl;
-	std::cout << "Holiday <date> - Make this date a holiday." << std::endl;
 }
 
 void Calendar::exit(std::string& fileName, bool fileIsOpen)
