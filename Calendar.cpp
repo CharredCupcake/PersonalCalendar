@@ -622,7 +622,7 @@ void Calendar::exit(std::string& fileName, bool fileIsOpen)
 			this->save(fileName);
 			break;
 		case 3:
-			break;
+			return;
 		case 4:
 			break;
 		}
