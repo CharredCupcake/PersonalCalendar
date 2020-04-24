@@ -100,25 +100,81 @@ bool Date::operator==(const Date& other)
 
 bool Date::operator>=(const Date& other)
 {
-	if (m_year >= other.m_year && m_month >= other.m_month && m_day >= other.m_day)
+	if (m_year > other.m_year)
 	{
 		return true;
 	}
 	else
 	{
-		return false;
+		if (m_year == other.m_year)
+		{
+			if (m_month > other.m_month)
+			{
+				return true;
+			}
+			else
+			{
+				if (m_month == other.m_month)
+				{
+					if (m_day >= other.m_day)
+					{
+						return true;
+					}
+					else
+					{
+						return false;
+					}
+				}
+				else
+				{
+					return false;
+				}
+			}
+		}
+		else
+		{
+			return false;
+		}
 	}
 }
 
 bool Date::operator<=(const Date& other)
 {
-	if (m_year <= other.m_year && m_month <= other.m_month && m_day <= other.m_day)
+	if (m_year < other.m_year)
 	{
 		return true;
 	}
 	else
 	{
-		return false;
+		if (m_year == other.m_year)
+		{
+			if (m_month < other.m_month)
+			{
+				return true;
+			}
+			else
+			{
+				if (m_month == other.m_month)
+				{
+					if (m_day <= other.m_day)
+					{
+						return true;
+					}
+					else
+					{
+						return false;
+					}
+				}
+				else
+				{
+					return false;
+				}
+			}
+		}
+		else
+		{
+			return false;
+		}
 	}
 }
 

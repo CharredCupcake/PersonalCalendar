@@ -6,8 +6,6 @@ static const size_t DAYS_IN_MONTH[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31
 class Date
 {
 private:
-	
-	static const size_t EARLIEST_YEAR = 2020;
 
 	size_t m_year;
 	size_t m_month;
