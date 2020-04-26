@@ -302,7 +302,7 @@ size_t Calendar::cinTime(const char* startOrEnd)
 	std::string hoursStr, minutesStr;
 	do
 	{
-		std::cout << "Enter " << startOrEnd << "time in format Hours:Minutes " << std::endl;
+		std::cout << "Enter " << startOrEnd << " time in format Hours:Minutes " << std::endl;
 		std::cin >> timeStr;
 		while (!ValidateTimeFormat(timeStr))
 		{
@@ -466,7 +466,7 @@ Calendar::~Calendar()
 
 void Calendar::open(std::string& fileName)
 {
-	std::cout << "Enter file name to open." << std::endl;
+	std::cout << "Enter file name." << std::endl;
 	std::cin >> fileName;
 	size_t dotPos = fileName.find('.');
 	if (dotPos == std::string::npos)
@@ -497,6 +497,7 @@ void Calendar::close(std::string& fileName)
 		std::cin >> option;
 
 	} while (option < 1 || option > 4);
+
 	size_t dotPos;
 	switch (option)
 	{
@@ -580,6 +581,7 @@ void Calendar::help()
 	std::cout << "Holiday <date> - Make this date a holiday." << std::endl;
 	std::cout << "Busy days <start date> <end date> - List all days from start date to end date ordered descending by work hours." << std::endl;
 	std::cout << "Find slot <date> <hours> - Finds and books the first possible meeting from date with hours length." << std::endl;
+	std::cout << "Find slot <date> <hours> <calendar> - Finds and books the first possible meeting from date with hours length synced with other calendar." << std::endl;
 }
 
 void Calendar::exit(std::string& fileName, bool fileIsOpen)
@@ -963,7 +965,6 @@ void Calendar::findSlot()
 	std::cout << "Enter note: ";
 	std::getline(std::cin, note);
 
-
 	for (size_t i = 0; i < m_size; i++)
 	{
 		if (m_days[i].getIsWeekend())
@@ -981,22 +982,199 @@ void Calendar::findSlot()
 					m_days[i].pushMeeting(Meeting(800, 800 + meetingLength, name, note));
 					return;
 				}
-			}
-			for (size_t j = 0; j < meetingSize - 1; j++)
-			{
-				if (m_days[i].getMeeting(j).getEndTime() <= 1700)
+				for (size_t j = 0; j < meetingSize - 1; j++)
 				{
-					if (m_days[i].getMeeting(j).getEndTime() + meetingLength <= m_days[i].getMeeting(j + 1).getStartTime())
+					if (m_days[i].getMeeting(j).getEndTime() <= 1700)
 					{
-						m_days[i].pushMeeting(Meeting(m_days[i].getMeeting(j).getEndTime(), m_days[i].getMeeting(j).getEndTime() + meetingLength, name, note));
-						return;
+						if (m_days[i].getMeeting(j).getEndTime() + meetingLength <= m_days[i].getMeeting(j + 1).getStartTime())
+						{
+							m_days[i].pushMeeting(Meeting(m_days[i].getMeeting(j).getEndTime(), m_days[i].getMeeting(j).getEndTime() + meetingLength, name, note));
+							return;
+						}
 					}
 				}
 			}
+			else
+			{
+				m_days[i].pushMeeting(Meeting(800, 800 + meetingLength, name, note));
+				return;
+			}
+
 		}
 	}
 	sortDays();
 	date = m_days[m_size - 1].getDate();
 	date.nextDay();
 	pushDay(Day(date, Meeting(800, 800 + meetingLength, name, note)));
+}
+
+void Calendar::findSlotWith()
+{
+	//Date
+	Date date(cinDate());
+	//hours
+	size_t meetingLength = cinTime("meeting");
+	std::string name, note;
+
+	std::cout << "Enter name: ";
+	std::cin >> name;
+	std::cin.ignore();
+	std::cout << "Enter note: ";
+	std::getline(std::cin, note);
+
+	Calendar otherCal;
+	std::string otherFile;
+	otherCal.open(otherFile);
+	size_t meetingSize;
+	size_t otherDayPos, otherMeetingSize;
+	size_t newStartTime,newEndtime;
+	for (size_t i = 0; i < m_size; i++)
+	{
+		if (m_days[i].getIsWeekend() || otherCal.m_days[i].getIsWeekend())
+		{
+			continue;
+		}
+		if (m_days[i].getDate() >= date)
+		{
+			m_days[i].sortMeetings();
+			meetingSize = m_days[i].getMeetingSize();
+			otherDayPos = otherCal.findDay(m_days[i].getDate());
+			otherMeetingSize = otherCal.m_days[otherDayPos].getMeetingSize();
+			otherCal.m_days[otherDayPos].sortMeetings();
+			newStartTime = 800;
+			newEndtime = newStartTime + meetingLength;
+			if (meetingSize > 0)
+			{
+				if (newEndtime <= m_days[i].getMeeting(0).getStartTime())
+				{
+					if (otherDayPos == 0xffffffff)
+					{
+						m_days[i].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
+						otherCal.pushDay(Day(m_days[i].getDate(), Meeting(newStartTime, newEndtime, name, note)));
+						otherCal.save(otherFile);
+						return;
+					}
+					else
+					{
+						if (otherMeetingSize != 0)
+						{
+							if (newEndtime <= otherCal.m_days[otherDayPos].getMeeting(0).getStartTime())
+							{
+								m_days[i].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
+								otherCal.m_days[otherDayPos].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
+								otherCal.save(otherFile);
+								return;
+							}
+						}
+						else
+						{
+							m_days[i].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
+							otherCal.m_days[otherDayPos].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
+							otherCal.save(otherFile);
+							return;
+						}
+
+					}
+				}
+				for (size_t j = 0; j < meetingSize - 1; j++)
+				{
+					newStartTime = m_days[i].getMeeting(j).getEndTime();
+					newEndtime = newStartTime + meetingLength;
+					if ( newStartTime <= 1700)
+					{
+						if (newEndtime <= m_days[i].getMeeting(j + 1).getStartTime())
+						{
+							if (otherDayPos == 0xffffffff)
+							{
+								m_days[i].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
+								otherCal.pushDay(Day(m_days[i].getDate(), Meeting(newStartTime, newEndtime, name, note)));
+								otherCal.save(otherFile);
+								return;
+							}
+							else
+							{
+								for (size_t k = 0; k < otherMeetingSize - 1; k++)
+								{
+									if (newStartTime >= otherCal.m_days[otherDayPos].getMeeting(k).getEndTime() && newEndtime <= otherCal.m_days[otherDayPos].getMeeting(k + 1).getStartTime())
+									{
+										m_days[i].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
+										otherCal.m_days[otherDayPos].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
+										otherCal.save(otherFile);
+										return;
+									}
+								}
+							}
+						}
+					}
+				}
+				newStartTime = m_days[i].getMeeting(meetingSize - 1).getEndTime();
+				newEndtime = newStartTime + meetingLength;
+				if (newEndtime <= 1700)
+				{
+					if (otherDayPos == 0xffffffff)
+					{
+						m_days[i].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
+						otherCal.pushDay(Day(m_days[i].getDate(), Meeting(newStartTime, newEndtime, name, note)));
+						otherCal.save(otherFile);
+						return;
+					}
+					else
+					{
+						if (otherCal.m_days[otherDayPos].getMeeting(otherMeetingSize - 1).getEndTime() + meetingLength < 1700)
+						{
+							m_days[i].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
+							otherCal.m_days[otherDayPos].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
+							otherCal.save(otherFile);
+							return;
+						}
+					}
+				}
+			}
+			else
+			{
+				if (otherDayPos == 0xffffffff)
+				{
+					m_days[i].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
+					otherCal.pushDay(Day(m_days[i].getDate(), Meeting(newStartTime, newEndtime, name, note)));
+					otherCal.save(otherFile);
+					return;
+				}
+				else
+				{
+					if (otherMeetingSize == 0)
+					{
+						m_days[i].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
+						otherCal.m_days[otherDayPos].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
+						otherCal.save(otherFile);
+						return;
+					}
+				}
+			}
+		}
+	}
+
+	sortDays();
+	otherCal.sortDays();
+	Date newDate = m_days[m_size - 1].getDate();
+	newDate.nextDay();
+	newStartTime = 800;
+	newEndtime = newStartTime + meetingLength;
+	if (newDate >= otherCal.m_days[otherCal.m_size - 1].getDate())
+	{	
+		pushDay(Day(newDate, Meeting(newStartTime, newEndtime, name, note)));
+		otherCal.pushDay(Day(newDate, Meeting(newStartTime, newEndtime, name, note)));
+		otherCal.save(otherFile);
+	}
+	else
+	{
+		otherDayPos = otherCal.findDay(newDate);
+		while (otherDayPos != 0xffffffff)
+		{
+			newDate.nextDay();
+			otherDayPos = otherCal.findDay(newDate);
+		}
+		pushDay(Day(newDate, Meeting(newStartTime, newEndtime, name, note)));
+		otherCal.pushDay(Day(newDate, Meeting(newStartTime, newEndtime, name, note)));
+		otherCal.save(otherFile);
+	}
 }

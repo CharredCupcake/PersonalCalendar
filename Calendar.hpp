@@ -50,5 +50,7 @@ public:
 	void holiday();
 	void busyDays();
 	void findSlot();
+	void findSlotWith();
+
 };
 

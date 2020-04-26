@@ -45,8 +45,9 @@ int main()
 			std::cout << "(11) Holiday." << std::endl;
 			std::cout << "(12) Busy days." << std::endl;
 			std::cout << "(13) Find slot." << std::endl;
+			std::cout << "(14) Find slot with." << std::endl;
 			std::cin >> option;
-			if (option < 1 || option > 13)
+			if (option < 1 || option > 14)
 			{
 				continue;
 			}
@@ -104,6 +105,9 @@ int main()
 				break;
 			case 13:
 				cal.findSlot();
+				break;
+			case 14:
+				cal.findSlotWith();
 				break;
 			}
 		} while (option != 1);
