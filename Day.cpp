@@ -144,3 +144,72 @@ void Day::setDate(const Date& date)
 {
 	m_date = date;
 }
+
+size_t Day::findFreeTime(size_t length)
+{
+	sortMeetings();
+	size_t startTime = 800;
+	if (m_meetingSize > 0)
+	{
+		if (startTime + length <= getMeeting(0).getStartTime())
+		{
+			return startTime;
+		}
+		for (size_t i = 0; i < m_meetingSize - 1; i++)
+		{
+			startTime = m_meetings[i].getEndTime();
+			if ( startTime <= 1700)
+			{
+				if (startTime + length <= m_meetings[i + 1].getStartTime())
+				{
+					return startTime;
+				}
+			}
+		}
+		startTime = m_meetings[m_meetingSize - 1].getEndTime();
+		if (startTime + length <= 1700)
+		{
+			return startTime;
+		}
+	}
+	else
+	{
+		return startTime;
+	}
+	return 0xffffffff;
+}
+
+bool Day::checkMeeting(size_t startTime, size_t length)
+{
+	sortMeetings();
+	if (m_meetingSize > 0)
+	{
+		if (startTime + length <= m_meetings[0].getStartTime())
+		{
+			return true;
+		}
+		for (size_t i = 0; i < m_meetingSize - 1; i++)
+		{
+			if (startTime >= m_meetings[i].getEndTime())
+			{
+				if (startTime + length <= m_meetings[i + 1].getStartTime())
+				{
+					return true;
+				}
+			}
+			else
+			{
+				return false;
+			}
+		}
+		if (startTime >= m_meetings[m_meetingSize - 1].getEndTime())
+		{
+			return true;
+		}
+	}
+	else
+	{
+		return true;
+	}
+	return false;
+}

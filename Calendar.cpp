@@ -302,7 +302,7 @@ size_t Calendar::cinTime(const char* startOrEnd)
 	std::string hoursStr, minutesStr;
 	do
 	{
-		std::cout << "Enter " << startOrEnd << " time in format Hours:Minutes " << std::endl;
+		std::cout << "Enter " << startOrEnd << " in format Hours:Minutes " << std::endl;
 		std::cin >> timeStr;
 		while (!ValidateTimeFormat(timeStr))
 		{
@@ -635,10 +635,9 @@ void Calendar::exit(std::string& fileName, bool fileIsOpen)
 
 void Calendar::book()
 {
-	//Date
 	Date date(cinDate());
-	//Meeting
-	size_t startTime = cinTime("start"), endTime = cinTime("end");
+
+	size_t startTime = cinTime("start time"), endTime = cinTime("end time");
 	std::string name, note;
 
 	std::cout << "Enter name: ";
@@ -669,10 +668,9 @@ void Calendar::book()
 
 void Calendar::unbook()
 {
-	//Date
 	Date date(cinDate());
-	//startTime, endTime
-	size_t startTime = cinTime("start"), endTime = cinTime("end");
+
+	size_t startTime = cinTime("start time"), endTime = cinTime("end time");
 
 	size_t dayPos = findDay(date);
 	if (dayPos == 0xffffffff)
@@ -711,7 +709,6 @@ void Calendar::unbook()
 
 void Calendar::agenda()
 {
-	//Date
 	Date date(cinDate());
 
 	size_t dayPos = findDay(date);
@@ -741,11 +738,10 @@ void Calendar::agenda()
 
 void Calendar::change()
 {
-	//Date
 	Date date(cinDate());
-	//startTime
-	size_t startTime = cinTime("start");
-	//option
+
+	size_t startTime = cinTime("start time");
+
 	size_t option;
 
 	size_t meetingPos;
@@ -786,11 +782,10 @@ void Calendar::change()
 
 	} while (option < 1 || option>5);
 
-	//newValue
 	Meeting savedMeeting = m_days[dayPos].getMeeting(meetingPos);
 	std::string name;
 
-	size_t duration = 0;//meeting duration
+	size_t duration = 0;
 	switch (option)
 	{
 	case 1:
@@ -799,7 +794,7 @@ void Calendar::change()
 		pushMeeting(date, savedMeeting);
 		break;
 	case 2:
-		startTime = cinTime("new start");
+		startTime = cinTime("new start time");
 		m_days[dayPos].removeMeeting(meetingPos);
 		duration = meetingLength(savedMeeting);
 		savedMeeting.setStartTime(startTime);
@@ -817,7 +812,7 @@ void Calendar::change()
 		m_days[dayPos].pushMeeting(savedMeeting);
 		break;
 	case 3:
-		startTime = cinTime("new end");
+		startTime = cinTime("new end time");
 		m_days[dayPos].removeMeeting(meetingPos);
 		savedMeeting.setEndTime(startTime);
 		m_days[dayPos].pushMeeting(savedMeeting);
@@ -842,7 +837,6 @@ void Calendar::change()
 
 void Calendar::find()
 {
-	//string
 	std::string subStr;
 	std::cout << "Enter word to search for: ";
 	std::cin >> subStr;
@@ -871,7 +865,6 @@ void Calendar::find()
 
 void Calendar::holiday()
 {
-	//Date
 	Date date(cinDate());
 
 	size_t dayPos = findDay(date);
@@ -888,10 +881,10 @@ void Calendar::holiday()
 
 void Calendar::busyDays()
 {
-	//From
+
 	std::cout << "From when to start the search?" << std::endl;
 	Date fromDate(cinDate());
-	//to
+
 	std::cout << "When to stop the search?" << std::endl;
 	Date toDate(cinDate());
 
@@ -953,11 +946,16 @@ void Calendar::busyDays()
 
 void Calendar::findSlot()
 {
-	//Date
+
 	Date date(cinDate());
-	//hours
-	size_t meetingLength = cinTime("meeting");
+
+	size_t meetingLength = cinTime("meeting length");
 	std::string name, note;
+	while (meetingLength > 900)
+	{
+		std::cout << "Meeting can't be longer than 9 hours." << std::endl;
+		meetingLength = cinTime("meeting length");
+	}
 
 	std::cout << "Enter name: ";
 	std::cin >> name;
@@ -965,6 +963,7 @@ void Calendar::findSlot()
 	std::cout << "Enter note: ";
 	std::getline(std::cin, note);
 
+	size_t startTime = 800;
 	for (size_t i = 0; i < m_size; i++)
 	{
 		if (m_days[i].getIsWeekend())
@@ -973,47 +972,31 @@ void Calendar::findSlot()
 		}
 		if (m_days[i].getDate() >= date)
 		{
-			m_days[i].sortMeetings();
-			size_t meetingSize = m_days[i].getMeetingSize();
-			if (meetingSize > 0)
+			startTime = m_days[i].findFreeTime(meetingLength);
+			if (startTime != 0xffffffff)
 			{
-				if (800 + meetingLength <= m_days[i].getMeeting(0).getStartTime())
-				{
-					m_days[i].pushMeeting(Meeting(800, 800 + meetingLength, name, note));
-					return;
-				}
-				for (size_t j = 0; j < meetingSize - 1; j++)
-				{
-					if (m_days[i].getMeeting(j).getEndTime() <= 1700)
-					{
-						if (m_days[i].getMeeting(j).getEndTime() + meetingLength <= m_days[i].getMeeting(j + 1).getStartTime())
-						{
-							m_days[i].pushMeeting(Meeting(m_days[i].getMeeting(j).getEndTime(), m_days[i].getMeeting(j).getEndTime() + meetingLength, name, note));
-							return;
-						}
-					}
-				}
-			}
-			else
-			{
-				m_days[i].pushMeeting(Meeting(800, 800 + meetingLength, name, note));
+				m_days[i].pushMeeting(Meeting(startTime, startTime + meetingLength, name, note));
 				return;
 			}
-
 		}
 	}
 	sortDays();
 	date = m_days[m_size - 1].getDate();
 	date.nextDay();
-	pushDay(Day(date, Meeting(800, 800 + meetingLength, name, note)));
+	pushDay(Day(date, Meeting(startTime, startTime + meetingLength, name, note)));
 }
 
 void Calendar::findSlotWith()
 {
-	//Date
+
 	Date date(cinDate());
-	//hours
+
 	size_t meetingLength = cinTime("meeting");
+	while (meetingLength > 900)
+	{
+		std::cout << "Meeting can't be longer than 9 hours." << std::endl;
+		meetingLength = cinTime("meeting length");
+	}
 	std::string name, note;
 
 	std::cout << "Enter name: ";
@@ -1025,9 +1008,9 @@ void Calendar::findSlotWith()
 	Calendar otherCal;
 	std::string otherFile;
 	otherCal.open(otherFile);
-	size_t meetingSize;
 	size_t otherDayPos, otherMeetingSize;
-	size_t newStartTime,newEndtime;
+	size_t startTime = 800;
+
 	for (size_t i = 0; i < m_size; i++)
 	{
 		if (m_days[i].getIsWeekend() || otherCal.m_days[i].getIsWeekend())
@@ -1036,115 +1019,24 @@ void Calendar::findSlotWith()
 		}
 		if (m_days[i].getDate() >= date)
 		{
-			m_days[i].sortMeetings();
-			meetingSize = m_days[i].getMeetingSize();
-			otherDayPos = otherCal.findDay(m_days[i].getDate());
-			otherMeetingSize = otherCal.m_days[otherDayPos].getMeetingSize();
-			otherCal.m_days[otherDayPos].sortMeetings();
-			newStartTime = 800;
-			newEndtime = newStartTime + meetingLength;
-			if (meetingSize > 0)
-			{
-				if (newEndtime <= m_days[i].getMeeting(0).getStartTime())
-				{
-					if (otherDayPos == 0xffffffff)
-					{
-						m_days[i].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
-						otherCal.pushDay(Day(m_days[i].getDate(), Meeting(newStartTime, newEndtime, name, note)));
-						otherCal.save(otherFile);
-						return;
-					}
-					else
-					{
-						if (otherMeetingSize != 0)
-						{
-							if (newEndtime <= otherCal.m_days[otherDayPos].getMeeting(0).getStartTime())
-							{
-								m_days[i].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
-								otherCal.m_days[otherDayPos].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
-								otherCal.save(otherFile);
-								return;
-							}
-						}
-						else
-						{
-							m_days[i].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
-							otherCal.m_days[otherDayPos].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
-							otherCal.save(otherFile);
-							return;
-						}
 
-					}
-				}
-				for (size_t j = 0; j < meetingSize - 1; j++)
-				{
-					newStartTime = m_days[i].getMeeting(j).getEndTime();
-					newEndtime = newStartTime + meetingLength;
-					if ( newStartTime <= 1700)
-					{
-						if (newEndtime <= m_days[i].getMeeting(j + 1).getStartTime())
-						{
-							if (otherDayPos == 0xffffffff)
-							{
-								m_days[i].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
-								otherCal.pushDay(Day(m_days[i].getDate(), Meeting(newStartTime, newEndtime, name, note)));
-								otherCal.save(otherFile);
-								return;
-							}
-							else
-							{
-								for (size_t k = 0; k < otherMeetingSize - 1; k++)
-								{
-									if (newStartTime >= otherCal.m_days[otherDayPos].getMeeting(k).getEndTime() && newEndtime <= otherCal.m_days[otherDayPos].getMeeting(k + 1).getStartTime())
-									{
-										m_days[i].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
-										otherCal.m_days[otherDayPos].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
-										otherCal.save(otherFile);
-										return;
-									}
-								}
-							}
-						}
-					}
-				}
-				newStartTime = m_days[i].getMeeting(meetingSize - 1).getEndTime();
-				newEndtime = newStartTime + meetingLength;
-				if (newEndtime <= 1700)
-				{
-					if (otherDayPos == 0xffffffff)
-					{
-						m_days[i].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
-						otherCal.pushDay(Day(m_days[i].getDate(), Meeting(newStartTime, newEndtime, name, note)));
-						otherCal.save(otherFile);
-						return;
-					}
-					else
-					{
-						if (otherCal.m_days[otherDayPos].getMeeting(otherMeetingSize - 1).getEndTime() + meetingLength < 1700)
-						{
-							m_days[i].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
-							otherCal.m_days[otherDayPos].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
-							otherCal.save(otherFile);
-							return;
-						}
-					}
-				}
-			}
-			else
+			startTime = m_days[i].findFreeTime(meetingLength);
+			if (startTime != 0xffffffff)
 			{
+				otherDayPos = otherCal.findDay(m_days[i].getDate());
 				if (otherDayPos == 0xffffffff)
 				{
-					m_days[i].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
-					otherCal.pushDay(Day(m_days[i].getDate(), Meeting(newStartTime, newEndtime, name, note)));
+					m_days[i].pushMeeting(Meeting(startTime, startTime + meetingLength, name, note));
+					otherCal.pushDay(Day(m_days[i].getDate(), Meeting(startTime, startTime + meetingLength, name, note)));
 					otherCal.save(otherFile);
 					return;
 				}
 				else
 				{
-					if (otherMeetingSize == 0)
+					if (otherCal.m_days[otherDayPos].checkMeeting(startTime, meetingLength))
 					{
-						m_days[i].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
-						otherCal.m_days[otherDayPos].pushMeeting(Meeting(newStartTime, newEndtime, name, note));
+						m_days[i].pushMeeting(Meeting(startTime, startTime + meetingLength, name, note));
+						otherCal.m_days[otherDayPos].pushMeeting(Meeting(startTime, startTime + meetingLength, name, note));
 						otherCal.save(otherFile);
 						return;
 					}
@@ -1152,29 +1044,27 @@ void Calendar::findSlotWith()
 			}
 		}
 	}
-
 	sortDays();
 	otherCal.sortDays();
 	Date newDate = m_days[m_size - 1].getDate();
 	newDate.nextDay();
-	newStartTime = 800;
-	newEndtime = newStartTime + meetingLength;
-	if (newDate >= otherCal.m_days[otherCal.m_size - 1].getDate())
-	{	
-		pushDay(Day(newDate, Meeting(newStartTime, newEndtime, name, note)));
-		otherCal.pushDay(Day(newDate, Meeting(newStartTime, newEndtime, name, note)));
+	startTime = 800;
+	otherDayPos = otherCal.findDay(newDate);
+	while (otherDayPos != 0xffffffff && otherCal.m_days[otherDayPos].checkMeeting(startTime, meetingLength) == false)
+	{
+		newDate.nextDay();
+		otherDayPos = otherCal.findDay(newDate);
+	}
+	if (otherDayPos == 0xffffffff)
+	{
+		pushDay(Day(newDate, Meeting(startTime, startTime + meetingLength, name, note)));
+		otherCal.pushDay(Day(newDate, Meeting(startTime, startTime + meetingLength, name, note)));
 		otherCal.save(otherFile);
 	}
 	else
 	{
-		otherDayPos = otherCal.findDay(newDate);
-		while (otherDayPos != 0xffffffff)
-		{
-			newDate.nextDay();
-			otherDayPos = otherCal.findDay(newDate);
-		}
-		pushDay(Day(newDate, Meeting(newStartTime, newEndtime, name, note)));
-		otherCal.pushDay(Day(newDate, Meeting(newStartTime, newEndtime, name, note)));
+		pushDay(Day(newDate, Meeting(startTime, startTime + meetingLength, name, note)));
+		otherCal.m_days[otherDayPos].pushMeeting(Meeting(startTime, startTime + meetingLength, name, note));
 		otherCal.save(otherFile);
 	}
 }
