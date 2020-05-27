@@ -372,6 +372,67 @@ bool Calendar::ValidateTime(const std::string& hoursStr, const std::string& minu
 
 }
 
+void Calendar::mergeDays(size_t dayPos, Day& otherDay)
+{
+	m_days[dayPos].sortMeetings();
+	otherDay.sortMeetings();
+
+	size_t meetingSize = m_days[dayPos].getMeetingSize();
+	size_t otherMeetingPos = 0;
+	size_t thisStart, thisEnd;
+	size_t otherStart, otherEnd;
+	size_t choice = 0;
+	for (size_t i = 0; i < meetingSize; i++)
+	{
+		for (otherMeetingPos; otherMeetingPos < otherDay.getMeetingSize(); otherMeetingPos++)
+		{
+			thisStart = m_days[dayPos].getMeeting(i).getStartTime();
+			thisEnd = m_days[dayPos].getMeeting(i).getEndTime();
+			otherStart = otherDay.getMeeting(otherMeetingPos).getStartTime();
+			otherEnd = otherDay.getMeeting(otherMeetingPos).getEndTime();
+
+			if ((otherStart >= thisStart && otherStart <= thisEnd) || (otherEnd >= thisStart && otherEnd <= thisEnd))
+			{
+				std::cout << "Meetings overlap! Choose meeting to save" << std::endl;
+				std::cout << "Meeting (1) " << std::endl;
+				std::cout << m_days[dayPos].getMeeting(i);
+				std::cout << "Meeting (2) " << std::endl;
+				std::cout << otherDay.getMeeting(otherMeetingPos);
+				std::cout << "Your choice: ";
+				std::cin >> choice;
+				while (choice < 1 || choice > 2)
+				{
+					std::cout << "Invalid choice. Please choose again." << std::endl;
+					std::cin >> choice;
+				}
+				switch (choice)
+				{
+				case 1:
+					break;
+				case 2:
+					m_days[dayPos].getMeeting(i) = otherDay.getMeeting(otherMeetingPos);
+					break;
+				}
+			}
+			else
+			{
+				if (otherStart < thisStart)
+				{
+					m_days[dayPos].pushMeeting(otherDay.getMeeting(otherMeetingPos));
+				}
+				else
+				{
+					break;
+				}
+			}
+		}
+	}
+	for (otherMeetingPos; otherMeetingPos < otherDay.getMeetingSize(); otherMeetingPos++)
+	{
+		m_days[dayPos].pushMeeting(otherDay.getMeeting(otherMeetingPos));
+	}
+}
+
 Calendar::Calendar() :
 	m_days(nullptr),
 	m_size(0)
@@ -582,6 +643,8 @@ void Calendar::help()
 	std::cout << "Busy days <start date> <end date> - List all days from start date to end date ordered descending by work hours." << std::endl;
 	std::cout << "Find slot <date> <hours> - Finds and books the first possible meeting from date with hours length." << std::endl;
 	std::cout << "Find slot <date> <hours> <calendar> - Finds and books the first possible meeting from date with hours length synced with other calendar." << std::endl;
+	std::cout << "Merge <calendar> - Merges the current calendar with another one." << std::endl;
+
 }
 
 void Calendar::exit(std::string& fileName, bool fileIsOpen)
@@ -1066,5 +1129,51 @@ void Calendar::findSlotWith()
 		pushDay(Day(newDate, Meeting(startTime, startTime + meetingLength, name, note)));
 		otherCal.m_days[otherDayPos].pushMeeting(Meeting(startTime, startTime + meetingLength, name, note));
 		otherCal.save(otherFile);
+	}
+}
+
+void Calendar::merge()
+{
+	Calendar otherCal;
+	std::string otherFile;
+	otherCal.open(otherFile);
+
+	sortDays();
+	otherCal.sortDays();
+
+	size_t thisCalSize = m_size;
+	size_t otherDayPos = 0;
+	size_t choice = 0;
+	for (size_t i = 0; i < thisCalSize; i++)
+	{
+		for (otherDayPos; otherDayPos < otherCal.m_size; otherDayPos++)
+		{
+			if (m_days[i].getDate() >= otherCal.m_days[otherDayPos].getDate())
+			{
+				if (m_days[i].getDate() == otherCal.m_days[otherDayPos].getDate())
+				{
+					if (m_days[i].getIsWeekend())
+					{
+						m_days[i] = otherCal.m_days[otherDayPos];
+					}
+					else
+					{
+						mergeDays(i, otherCal.m_days[otherDayPos]);
+					}
+				}
+				else
+				{
+					pushDay(otherCal.m_days[otherDayPos]);
+				}
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+	for (otherDayPos; otherDayPos < otherCal.m_size; otherDayPos++)
+	{
+		pushDay(otherCal.m_days[otherDayPos]);
 	}
 }

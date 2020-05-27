@@ -46,8 +46,9 @@ int main()
 			std::cout << "(12) Busy days." << std::endl;
 			std::cout << "(13) Find slot." << std::endl;
 			std::cout << "(14) Find slot with." << std::endl;
+			std::cout << "(15) Merge." << std::endl;
 			std::cin >> option;
-			if (option < 1 || option > 14)
+			if (option < 1 || option > 15)
 			{
 				continue;
 			}
@@ -108,6 +109,9 @@ int main()
 				break;
 			case 14:
 				cal.findSlotWith();
+				break;
+			case 15:
+				cal.merge();
 				break;
 			}
 		} while (option != 1);

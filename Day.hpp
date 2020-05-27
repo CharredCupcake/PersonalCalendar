@@ -16,6 +16,7 @@ private:
 public:
 
 	Day();
+	Day(const Day& other);
 	Day(const Date& date, const Meeting& meeting);
 	Day& operator=(const Day& other);
 

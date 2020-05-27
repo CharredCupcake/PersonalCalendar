@@ -16,6 +16,18 @@ Day::Day() :
 {
 }
 
+Day::Day(const Day& other) :
+	m_date(other.m_date),
+	m_meetingSize(other.m_meetingSize),
+	m_meetings(nullptr),
+	m_isWeekend(other.m_isWeekend)
+{
+	for (size_t i = 0; i < other.m_meetingSize; i++)
+	{
+		pushMeeting(other.m_meetings[i]);
+	}
+}
+
 Day::Day(const Date& date, const Meeting& meeting) :
 	m_date(date),
 	m_meetingSize(0),

@@ -28,6 +28,7 @@ private:
 	size_t cinTime(const char* startOrEnd);
 	bool ValidateTimeFormat(const std::string& timeStr);
 	bool ValidateTime(const std::string& hoursStr, const std::string& minutesStr);
+	void mergeDays(size_t dayPos, Day& otherDay);
 
 
 public:
@@ -51,6 +52,7 @@ public:
 	void busyDays();
 	void findSlot();
 	void findSlotWith();
+	void merge();
 
 };
 
