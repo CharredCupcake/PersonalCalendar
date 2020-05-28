@@ -557,21 +557,7 @@ void Calendar::close(std::string& fileName)
 		this->save(fileName);
 		break;
 	case 2:
-		std::cout << "Enter file name." << std::endl;
-		std::cin >> fileName;
-		dotPos = fileName.find('.');
-		if (dotPos == std::string::npos)
-		{
-			fileName += ".txt";
-		}
-		else
-		{
-			if (fileName.find('txt', dotPos + 1) != dotPos + 1)
-			{
-				fileName += ".txt";
-			}
-		}
-		this->save(fileName);
+		this->saveAs();
 		break;
 	case 3:
 		break;
@@ -579,7 +565,6 @@ void Calendar::close(std::string& fileName)
 		this->~Calendar();
 		break;
 	}
-
 }
 
 void Calendar::save(std::string& fileName)
@@ -602,6 +587,27 @@ void Calendar::save(std::string& fileName)
 	outStream.close();
 }
 
+void Calendar::saveAs()
+{
+	std::string otherFileName;
+	size_t dotPos = 0;
+	std::cout << "Enter file name." << std::endl;
+	std::cin >> otherFileName;
+	dotPos = otherFileName.find('.');
+	if (dotPos == std::string::npos)
+	{
+		otherFileName += ".txt";
+	}
+	else
+	{
+		if (otherFileName.find('txt', dotPos + 1) != dotPos + 1)
+		{
+			otherFileName += ".txt";
+		}
+	}
+	save(otherFileName);
+}
+
 void Calendar::help()
 {
 	std::cout << "Commands: " << std::endl;
@@ -621,7 +627,6 @@ void Calendar::help()
 	std::cout << "Find slot <date> <hours> - Finds and books the first possible meeting from date with hours length." << std::endl;
 	std::cout << "Find slot <date> <hours> <calendar> - Finds and books the first possible meeting from date with hours length synced with other calendar." << std::endl;
 	std::cout << "Merge <calendar> - Merges the current calendar with another one." << std::endl;
-
 }
 
 void Calendar::exit(std::string& fileName, bool fileIsOpen)
@@ -646,21 +651,7 @@ void Calendar::exit(std::string& fileName, bool fileIsOpen)
 			this->save(fileName);
 			break;
 		case 2:
-			std::cout << "Enter file name." << std::endl;
-			std::cin >> fileName;
-			dotPos = fileName.find('.');
-			if (dotPos == std::string::npos)
-			{
-				fileName += ".txt";
-			}
-			else
-			{
-				if (fileName.find('txt', dotPos + 1) != dotPos + 1)
-				{
-					fileName += ".txt";
-				}
-			}
-			this->save(fileName);
+			this->saveAs();
 			break;
 		case 3:
 			return;
@@ -670,7 +661,6 @@ void Calendar::exit(std::string& fileName, bool fileIsOpen)
 	}
 
 	std::exit(0);
-	
 }
 
 void Calendar::book()
@@ -703,7 +693,6 @@ void Calendar::book()
 			m_days[dayPos].pushMeeting(Meeting(startTime, endTime, name, note));
 		}
 	}
-	
 }
 
 void Calendar::unbook()

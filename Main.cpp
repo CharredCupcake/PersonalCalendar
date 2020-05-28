@@ -4,8 +4,8 @@
 int main()
 {
 	Calendar cal;
-	size_t option, dotPos;
-	std::string fileName, otherFileName;
+	size_t option;
+	std::string fileName;
 	do
 	{
 		do
@@ -67,21 +67,7 @@ int main()
 				cal.save(fileName);
 				break;
 			case 5:
-				std::cout << "Enter file name." << std::endl;
-				std::cin >> otherFileName;
-				dotPos = otherFileName.find('.');
-				if (dotPos == std::string::npos)
-				{
-					otherFileName += ".txt";
-				}
-				else
-				{
-					if (otherFileName.find('txt', dotPos + 1) != dotPos + 1)
-					{
-						otherFileName += ".txt";
-					}
-				}
-				cal.save(otherFileName);
+				cal.saveAs();
 				break;
 			case 6:
 				cal.book();

@@ -41,6 +41,7 @@ public:
 	void open(std::string& fileName);
 	void close(std::string& fileName);
 	void save(std::string& fileName);
+	void saveAs();
 	static void help();
 	void exit(std::string& fileName, bool fileIsOpen);
 
