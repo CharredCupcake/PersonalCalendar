@@ -18,6 +18,7 @@ public:
 	Day();
 	Day(const Day& other);
 	Day(const Date& date, const Meeting& meeting);
+	~Day();
 	Day& operator=(const Day& other);
 
 	Date& getDate();

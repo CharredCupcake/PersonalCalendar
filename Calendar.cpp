@@ -20,7 +20,7 @@ void Calendar::pushHoliday(const Date& date)
 	m_size++;
 	if (m_days != nullptr)
 	{
-		delete m_days;
+		delete[] m_days;
 	}
 	m_days = newDays;
 }
@@ -43,7 +43,7 @@ void Calendar::pushDay(const Day& day)
 	m_size++;
 	if (m_days != nullptr)
 	{
-		delete m_days;
+		delete[] m_days;
 	}
 	m_days = newDays;
 }
@@ -467,12 +467,6 @@ Calendar::Calendar(const char* fileName) :
 			std::string dateStr;
 			bool isWeekend;
 
-			/*char tempChar = 0;
-			while ((tempChar = inStream.get()) != '\n')
-			{
-				dateStr.push_back(tempChar);
-			}
-			*/
 			getLine(dateStr, inStream);
 			isWeekend = bool(inStream.get() - '0');
 			inStream.ignore();
@@ -499,16 +493,6 @@ Calendar::Calendar(const char* fileName) :
 				endTime += size_t(inStream.get() - '0') * 10 + size_t(inStream.get() - '0');
 				inStream.ignore();
 
-				/*while ((tempChar = inStream.get()) != '\n')
-				{
-					name.push_back(tempChar);
-				}
-
-				while ((tempChar = inStream.get()) != '\n')
-				{
-					note.push_back(tempChar);
-				}*/
-
 				getLine(name, inStream);
 				getLine(note, inStream);
 
@@ -529,10 +513,6 @@ Calendar::Calendar(const char* fileName) :
 
 Calendar::~Calendar()
 {
-	for (size_t i = 0; i < m_size; i++)
-	{
-		delete[] &(m_days[i].getMeeting(0));
-	}
 	delete[] m_days;
 }
 
@@ -764,7 +744,6 @@ void Calendar::unbook()
 			}
 		}
 	}
-
 }
 
 void Calendar::agenda()

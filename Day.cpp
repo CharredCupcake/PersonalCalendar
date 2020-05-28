@@ -37,6 +37,11 @@ Day::Day(const Date& date, const Meeting& meeting) :
 	pushMeeting(meeting);
 }
 
+Day::~Day()
+{
+	delete[] m_meetings;
+}
+
 Day& Day::operator=(const Day& other)
 {
 	if (this != &other)
