@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include "Day.hpp"
+#include "Validations.hpp"
 
 static const char TEST_FILE[] = "Test.txt";
 
@@ -23,12 +24,6 @@ private:
 	void swapDays(Day& first, Day& second);
 	void sortDays();
 	void getLine(std::string& str, std::ifstream& in);
-	Date cinDate();
-	bool ValidateDateFormat(const std::string& dateStr);
-	bool ValidateDate(const std::string& yearStr, const std::string& monthStr, const std::string& dayStr);
-	size_t cinTime(const char* startOrEnd);
-	bool ValidateTimeFormat(const std::string& timeStr);
-	bool ValidateTime(const std::string& hoursStr, const std::string& minutesStr);
 	void mergeDays(size_t dayPos, Day& otherDay);
 
 

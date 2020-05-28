@@ -181,206 +181,6 @@ void Calendar::getLine(std::string& str, std::ifstream& in)
 	}
 }
 
-Date Calendar::cinDate()
-{
-	std::string dateStr;
-	std::string yearStr, monthStr, dayStr;
-	do
-	{
-		std::cout << "Enter date in format Year.Month.Day " << std::endl;
-		std::cin >> dateStr;
-		while(!ValidateDateFormat(dateStr))
-		{
-			std::cout << "Invalid format. " << std::endl;
-			std::cout << "Enter date in format Year.Month.Day " << std::endl;
-			std::cin >> dateStr;
-		}
-		size_t firstDot = dateStr.find('.');
-		size_t secondDot = dateStr.rfind('.');
-		yearStr = dateStr.substr(0, firstDot);
-		monthStr = dateStr.substr(firstDot + 1, secondDot - firstDot - 1);
-		dayStr = dateStr.substr(secondDot + 1);
-
-	} while (!ValidateDate(yearStr, monthStr, dayStr));
-	size_t year, month, day;
-	year = std::stoul(yearStr);
-	month = std::stoul(monthStr);
-	day = std::stoul(dayStr);
-	return Date(year, month, day);
-}
-
-bool Calendar::ValidateDateFormat(const std::string& dateStr)
-{
-	size_t firstDot = dateStr.find('.');
-	size_t secondDot = dateStr.rfind('.');
-	if (firstDot == std::string::npos)
-	{
-		return false;
-	}
-	if (secondDot == firstDot + 1)
-	{
-		return false;
-	}
-	if (firstDot == 0)
-	{
-		return false;
-	}
-	if (secondDot == dateStr.length() - 1)
-	{
-		return false;
-	}
-	if (firstDot == secondDot)
-	{
-		return false;
-	}
-	if (dateStr.find('.', firstDot + 1) != secondDot)
-	{
-		return false;
-	}
-	return true;
-}
-
-bool Calendar::ValidateDate(const std::string& yearStr, const std::string& monthStr, const std::string& dayStr)
-{
-	if (yearStr.find_first_not_of("0123456789") != std::string::npos)
-	{
-		std::cout << "Invalid Year. " << std::endl;
-		return false;
-	}
-	if (monthStr.find_first_not_of("0123456789") != std::string::npos)
-	{
-		std::cout << "Invalid Month. " << std::endl;
-		return false;
-	}
-	if (dayStr.find_first_not_of("0123456789") != std::string::npos)
-	{
-		std::cout << "Invalid day. " << std::endl;
-		return false;
-	}
-	size_t year = std::stoul(yearStr), month = std::stoul(monthStr), day = std::stoul(dayStr);
-	if (month < 1 || month > 12)
-	{
-		std::cout << "Invalid Month. " << std::endl;
-		return false;
-	}
-	if (Date(year,month,day).isLeapYear())
-	{
-		if (month == 2)
-		{
-			if (DAYS_IN_MONTH[1] + 1 < day)
-			{
-				std::cout << "Invalid Day. " << std::endl;
-				return false;
-			}
-			else
-			{
-				return true;
-			}
-		}
-		else
-		{
-			if (DAYS_IN_MONTH[month - 1] < day)
-			{
-				std::cout << "Invalid Day. " << std::endl;
-				return false;
-			}
-			else
-			{
-				return true;
-			}
-		}
-	}
-	else
-	{
-		if (DAYS_IN_MONTH[month - 1] < day)
-		{
-			std::cout << "Invalid Day. " << std::endl;
-			return false;
-		}
-		else
-		{
-			return true;
-		}
-	}
-	return true;
-}
-
-size_t Calendar::cinTime(const char* startOrEnd)
-{
-	std::string timeStr;
-	std::string hoursStr, minutesStr;
-	do
-	{
-		std::cout << "Enter " << startOrEnd << " in format Hours:Minutes " << std::endl;
-		std::cin >> timeStr;
-		while (!ValidateTimeFormat(timeStr))
-		{
-			std::cout << "Invalid format. " << std::endl;
-			std::cout << "Enter " << startOrEnd << "time in format Hours:Minutes " << std::endl;
-			std::cin >> timeStr;
-		}
-		size_t colum = timeStr.find(':');
-		hoursStr = timeStr.substr(0, colum);
-		minutesStr = timeStr.substr(colum + 1);
-
-	} while (!ValidateTime(hoursStr, minutesStr));
-	size_t time = 0;
-	time = std::stoul(minutesStr);
-	time += std::stoul(hoursStr)*100;
-	return time;
-}
-
-bool Calendar::ValidateTimeFormat(const std::string& timeStr)
-{
-	size_t colum = timeStr.find(':');
-	size_t otherColum = timeStr.rfind(':');
-	if (colum == std::string::npos)
-	{
-		return false;
-	}
-	if (otherColum != colum)
-	{
-		return false;
-	}
-	if (colum == 0)
-	{
-		return false;
-	}
-	if (colum == timeStr.length() - 1)
-	{
-		return 0;
-	}
-	return true;
-
-}
-
-bool Calendar::ValidateTime(const std::string& hoursStr, const std::string& minutesStr)
-{
-	if (hoursStr.find_first_not_of("0123456789") != std::string::npos)
-	{
-		std::cout << "Invalid Hours. " << std::endl;
-		return false;
-	}
-	if (minutesStr.find_first_not_of("0123456789") != std::string::npos)
-	{
-		std::cout << "Invalid Minutes. " << std::endl;
-		return false;
-	}
-	size_t hours = std::stoul(hoursStr), minutes = std::stoul(minutesStr);
-	if (hours > 24)
-	{
-		std::cout << "Invalid Hours. " << std::endl;
-		return false;
-	}
-	if (minutes > 59)
-	{
-		std::cout << "Invalid Minutes. " << std::endl;
-		return false;
-	}
-	return true;
-
-}
-
 void Calendar::mergeDays(size_t dayPos, Day& otherDay)
 {
 	m_days[dayPos].sortMeetings();
@@ -520,18 +320,7 @@ void Calendar::open(std::string& fileName)
 {
 	std::cout << "Enter file name." << std::endl;
 	std::cin >> fileName;
-	size_t dotPos = fileName.find('.');
-	if (dotPos == std::string::npos)
-	{
-		fileName += ".txt";
-	}
-	else
-	{
-		if (fileName.find('txt', dotPos + 1) != dotPos + 1)
-		{
-			fileName += ".txt";
-		}
-	}
+	Validations::ValidateFileName(fileName);
 
 	this->Calendar::Calendar(fileName.c_str());
 }
@@ -550,7 +339,6 @@ void Calendar::close(std::string& fileName)
 
 	} while (option < 1 || option > 4);
 
-	size_t dotPos;
 	switch (option)
 	{
 	case 1:
@@ -582,7 +370,6 @@ void Calendar::save(std::string& fileName)
 	for (size_t i = 0; i < m_size; i++)
 	{
 		outStream << m_days[i];
-
 	}
 	outStream.close();
 }
@@ -593,18 +380,7 @@ void Calendar::saveAs()
 	size_t dotPos = 0;
 	std::cout << "Enter file name." << std::endl;
 	std::cin >> otherFileName;
-	dotPos = otherFileName.find('.');
-	if (dotPos == std::string::npos)
-	{
-		otherFileName += ".txt";
-	}
-	else
-	{
-		if (otherFileName.find('txt', dotPos + 1) != dotPos + 1)
-		{
-			otherFileName += ".txt";
-		}
-	}
+	Validations::ValidateFileName(otherFileName);
 	save(otherFileName);
 }
 
@@ -644,7 +420,7 @@ void Calendar::exit(std::string& fileName, bool fileIsOpen)
 			std::cin >> option;
 
 		} while (option < 1 || option > 4);
-		size_t dotPos;
+
 		switch (option)
 		{
 		case 1:
@@ -665,21 +441,39 @@ void Calendar::exit(std::string& fileName, bool fileIsOpen)
 
 void Calendar::book()
 {
-	Date date(cinDate());
+	Date date;
+	std::cout << "Enter date in format YYYY.MM.DD " << std::endl;
+	std::cin >> date;
+	try
+	{
+		if (date == Date())
+		{
+			throw std::invalid_argument("Couldn't initialize date.");
+		}
+	}
+	catch (const std::exception&)
+	{
+		return;
+	}
 
-	size_t startTime = cinTime("start time"), endTime = cinTime("end time");
-	std::string name, note;
-
-	std::cout << "Enter name: ";
-	std::cin >> name;
-	std::cin.ignore();
-	std::cout << "Enter note: ";
-	std::getline(std::cin, note);
+	Meeting meeting;
+	std::cin >> meeting;
+	try
+	{
+		if (meeting == Meeting())
+		{
+			throw std::invalid_argument("Couldn't initialize meeting.");
+		}
+	}
+	catch (const std::exception&)
+	{
+		return;
+	}
 
 	size_t dayPos = findDay(date);
 	if (dayPos == 0xffffffff)
 	{
-		pushDay(Day(date, Meeting(startTime, endTime, name, note)));
+		pushDay(Day(date, meeting));
 	}
 	else
 	{
@@ -690,16 +484,53 @@ void Calendar::book()
 		}
 		else
 		{
-			m_days[dayPos].pushMeeting(Meeting(startTime, endTime, name, note));
+			m_days[dayPos].pushMeeting(meeting);
 		}
 	}
 }
 
 void Calendar::unbook()
 {
-	Date date(cinDate());
+	Date date;
+	std::cout << "Enter date in format YYYY.MM.DD " << std::endl;
+	std::cin >> date;
+	try
+	{
+		if (date == Date())
+		{
+			throw std::invalid_argument("Couldn't initialize date.");
+		}
+	}
+	catch (const std::exception &)
+	{
+		return;
+	}
 
-	size_t startTime = cinTime("start time"), endTime = cinTime("end time");
+	size_t startTime = Meeting::cinTime("start");
+	try
+	{
+		if (startTime == 0)
+		{
+			throw std::invalid_argument("Couldn't initialize time.");
+		}
+	}
+	catch (const std::exception&)
+	{
+		return;
+	}
+
+	size_t endTime = Meeting::cinTime("end");
+	try
+	{
+		if (startTime == 0)
+		{
+			throw std::invalid_argument("Couldn't initialize time.");
+		}
+	}
+	catch (const std::exception&)
+	{
+		return;
+	}
 
 	size_t dayPos = findDay(date);
 	if (dayPos == 0xffffffff)
@@ -737,7 +568,20 @@ void Calendar::unbook()
 
 void Calendar::agenda()
 {
-	Date date(cinDate());
+	Date date;
+	std::cout << "Enter date in format YYYY.MM.DD " << std::endl;
+	std::cin >> date;
+	try
+	{
+		if (date == Date())
+		{
+			throw std::invalid_argument("Couldn't initialize date.");
+		}
+	}
+	catch (const std::exception&)
+	{
+		return;
+	}
 
 	size_t dayPos = findDay(date);
 	if (dayPos == 0xffffffff)
@@ -766,9 +610,33 @@ void Calendar::agenda()
 
 void Calendar::change()
 {
-	Date date(cinDate());
+	Date date;
+	std::cout << "Enter date in format YYYY.MM.DD " << std::endl;
+	std::cin >> date;
+	try
+	{
+		if (date == Date())
+		{
+			throw std::invalid_argument("Couldn't initialize date.");
+		}
+	}
+	catch (const std::exception&)
+	{
+		return;
+	}
 
-	size_t startTime = cinTime("start time");
+	size_t startTime = Meeting::cinTime("start");
+	try
+	{
+		if (startTime == 0)
+		{
+			throw std::invalid_argument("Couldn't initialize time.");
+		}
+	}
+	catch (const std::exception&)
+	{
+		return;
+	}
 
 	size_t option;
 
@@ -814,15 +682,39 @@ void Calendar::change()
 	std::string name;
 
 	size_t duration = 0;
+	size_t endTime;
 	switch (option)
 	{
 	case 1:
-		date = cinDate();
+		std::cout << "Enter date in format YYYY.MM.DD " << std::endl;
+		std::cin >> date;
+		try
+		{
+			if (date == Date())
+			{
+				throw std::invalid_argument("Couldn't initialize date.");
+			}
+		}
+		catch (const std::exception&)
+		{
+			return;
+		}
 		m_days[dayPos].removeMeeting(meetingPos);
 		pushMeeting(date, savedMeeting);
 		break;
 	case 2:
-		startTime = cinTime("new start time");
+		startTime = Meeting::cinTime("new start");
+		try
+		{
+			if (startTime == 0)
+			{
+				throw std::invalid_argument("Couldn't initialize time.");
+			}
+		}
+		catch (const std::exception&)
+		{
+			return;
+		}
 		m_days[dayPos].removeMeeting(meetingPos);
 		duration = meetingLength(savedMeeting);
 		savedMeeting.setStartTime(startTime);
@@ -840,7 +732,18 @@ void Calendar::change()
 		m_days[dayPos].pushMeeting(savedMeeting);
 		break;
 	case 3:
-		startTime = cinTime("new end time");
+		endTime = Meeting::cinTime("new end");
+		try
+		{
+			if (startTime == 0)
+			{
+				throw std::invalid_argument("Couldn't initialize time.");
+			}
+		}
+		catch (const std::exception&)
+		{
+			return;
+		}
 		m_days[dayPos].removeMeeting(meetingPos);
 		savedMeeting.setEndTime(startTime);
 		m_days[dayPos].pushMeeting(savedMeeting);
@@ -893,7 +796,20 @@ void Calendar::find()
 
 void Calendar::holiday()
 {
-	Date date(cinDate());
+	Date date;
+	std::cout << "Enter date in format YYYY.MM.DD " << std::endl;
+	std::cin >> date;
+	try
+	{
+		if (date == Date())
+		{
+			throw std::invalid_argument("Couldn't initialize date.");
+		}
+	}
+	catch (const std::exception&)
+	{
+		return;
+	}
 
 	size_t dayPos = findDay(date);
 	if (dayPos == 0xffffffff)
@@ -909,12 +825,37 @@ void Calendar::holiday()
 
 void Calendar::busyDays()
 {
-
 	std::cout << "From when to start the search?" << std::endl;
-	Date fromDate(cinDate());
+	Date fromDate;
+	std::cout << "Enter date in format YYYY.MM.DD " << std::endl;
+	std::cin >> fromDate;
+	try
+	{
+		if (fromDate == Date())
+		{
+			throw std::invalid_argument("Couldn't initialize date.");
+		}
+	}
+	catch (const std::exception&)
+	{
+		return;
+	}
 
 	std::cout << "When to stop the search?" << std::endl;
-	Date toDate(cinDate());
+	Date toDate;
+	std::cout << "Enter date in format YYYY.MM.DD " << std::endl;
+	std::cin >> toDate;
+	try
+	{
+		if (toDate == Date())
+		{
+			throw std::invalid_argument("Couldn't initialize date.");
+		}
+	}
+	catch (const std::exception&)
+	{
+		return;
+	}
 
 	size_t* busyHours = new size_t[m_size]{ 0 };
 
@@ -974,17 +915,46 @@ void Calendar::busyDays()
 
 void Calendar::findSlot()
 {
-
-	Date date(cinDate());
-
-	size_t meetingLength = cinTime("meeting length");
-	std::string name, note;
-	while (meetingLength > 900)
+	Date date;
+	std::cout << "Enter date in format YYYY.MM.DD " << std::endl;
+	std::cin >> date;
+	try
 	{
-		std::cout << "Meeting can't be longer than 9 hours." << std::endl;
-		meetingLength = cinTime("meeting length");
+		if (date == Date())
+		{
+			throw std::invalid_argument("Couldn't initialize date.");
+		}
+	}
+	catch (const std::exception&)
+	{
+		return;
 	}
 
+	size_t meetingLength = Meeting::cinTime("meeting length");
+	try
+	{
+		try
+		{
+			if (meetingLength == 0)
+			{
+				throw std::invalid_argument("Couldn't initialize time.");
+			}
+		}
+		catch (const std::exception&)
+		{
+			return;
+		}
+		if (meetingLength > 900)
+		{
+			throw std::invalid_argument("Meeting too long.");
+		}
+	}
+	catch (const std::exception&)
+	{
+		return;
+	}
+
+	std::string name, note;
 	std::cout << "Enter name: ";
 	std::cin >> name;
 	std::cin.ignore();
@@ -1008,6 +978,7 @@ void Calendar::findSlot()
 			}
 		}
 	}
+	startTime = 800;
 	sortDays();
 	date = m_days[m_size - 1].getDate();
 	date.nextDay();
@@ -1016,17 +987,46 @@ void Calendar::findSlot()
 
 void Calendar::findSlotWith()
 {
-
-	Date date(cinDate());
-
-	size_t meetingLength = cinTime("meeting");
-	while (meetingLength > 900)
+	Date date;
+	std::cout << "Enter date in format YYYY.MM.DD " << std::endl;
+	std::cin >> date;
+	try
 	{
-		std::cout << "Meeting can't be longer than 9 hours." << std::endl;
-		meetingLength = cinTime("meeting length");
+		if (date == Date())
+		{
+			throw std::invalid_argument("Couldn't initialize date.");
+		}
 	}
-	std::string name, note;
+	catch (const std::exception&)
+	{
+		return;
+	}
 
+	size_t meetingLength = Meeting::cinTime("meeting length");
+	try
+	{
+		try
+		{
+			if (meetingLength == 0)
+			{
+				throw std::invalid_argument("Couldn't initialize time.");
+			}
+		}
+		catch (const std::exception&)
+		{
+			return;
+		}
+		if (meetingLength > 900)
+		{
+			throw std::invalid_argument("Meeting too long.");
+		}
+	}
+	catch (const std::exception&)
+	{
+		return;
+	}
+
+	std::string name, note;
 	std::cout << "Enter name: ";
 	std::cin >> name;
 	std::cin.ignore();
@@ -1036,7 +1036,7 @@ void Calendar::findSlotWith()
 	Calendar otherCal;
 	std::string otherFile;
 	otherCal.open(otherFile);
-	size_t otherDayPos, otherMeetingSize;
+	size_t otherDayPos;
 	size_t startTime = 800;
 
 	for (size_t i = 0; i < m_size; i++)

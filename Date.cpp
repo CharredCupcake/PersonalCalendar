@@ -14,6 +14,14 @@ Date::Date(size_t year, size_t month, size_t day) :
 {
 }
 
+Date& Date::operator=(const Date& other)
+{
+	m_year = other.m_year;
+	m_month = other.m_month;
+	m_day = other.m_day;
+	return *this;
+}
+
 bool Date::isLeapYear()
 {
 	if (((m_year % 4 == 0) && (m_year % 100 != 0)) || (m_year % 400 == 0))
@@ -180,6 +188,57 @@ bool Date::operator<=(const Date& other)
 
 std::ostream& operator<<(std::ostream& out, const Date& date)
 {
-	out << date.m_year << '.' << date.m_month << '.' << date.m_day << '\n';
+	out << date.m_year << '.';
+	if (date.m_month < 10)
+	{
+		out << '0' << date.m_month << '.';
+	}
+	else
+	{
+		out << date.m_month << '.';
+	}
+	if (date.m_day < 10)
+	{
+		out << '0' <<date.m_day << '\n';
+	}
+	else
+	{
+		out << date.m_day << '\n';
+	}
 	return out;
+}
+
+std::istream& operator>>(std::istream& in, Date& date)
+{
+	std::string dateStr;
+	std::string yearStr;
+	std::string monthStr;
+	std::string dayStr;
+	in >> dateStr;
+	try
+	{
+		try
+		{
+			Validations::ValidateDateFormat(dateStr);
+		}
+		catch (const char* message)
+		{
+			std::cerr << message << std::endl;
+			return in;
+		}
+		size_t firstDot = dateStr.find('.');
+		size_t secondDot = dateStr.rfind('.');
+		yearStr = dateStr.substr(0, firstDot);
+		monthStr = dateStr.substr(firstDot + 1, secondDot - firstDot - 1);
+		dayStr = dateStr.substr(secondDot + 1);
+
+		Validations::ValidateDate(yearStr, monthStr, dayStr);
+	}
+	catch (const char* message)
+	{
+		std::cerr << message << std::endl;
+		return in;
+	}
+	date = Date(std::stoul(yearStr), std::stoul(monthStr), std::stoul(dayStr));
+	return in;
 }

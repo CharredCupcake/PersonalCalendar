@@ -24,8 +24,12 @@ public:
 	void setName(std::string name);
 	std::string& getNote();
 	void setNote(std::string note);
+	static size_t cinTime(const char* timeType);
+
+	bool operator==(const Meeting& other);
 
 	friend std::ostream& operator<<(std::ostream& out, const Meeting& meeting);
+	friend std::istream& operator>>(std::istream& in, Meeting& meeting);
 
 };
 

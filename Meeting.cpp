@@ -1,4 +1,5 @@
 #include "Meeting.hpp"
+#include "Validations.hpp";
 
 Meeting::Meeting() :
 	m_startTime(0),
@@ -56,6 +57,58 @@ void Meeting::setNote(std::string note)
 	m_note = note;
 }
 
+size_t Meeting::cinTime(const char* timeType)
+{
+	std::string timeStr;
+	std::string hoursStr;
+	std::string minutesStr;
+	std::cout << "Enter " << timeType << " in format HH:MM " << std::endl;
+	std::cin >> timeStr;
+	try
+	{
+		try
+		{
+			Validations::ValidateTimeFormat(timeStr);
+		}
+		catch (const char* message)
+		{
+			std::cerr << message << std::endl;
+			return 0;
+		}
+		size_t colum = timeStr.find(':');
+		hoursStr = timeStr.substr(0, colum);
+		minutesStr = timeStr.substr(colum + 1);
+		Validations::ValidateTime(hoursStr, minutesStr);
+	}
+	catch (const char* message)
+	{
+		std::cerr << message << std::endl;
+		return 0;
+	}
+	return std::stoul(minutesStr) + std::stoul(hoursStr) * 100;
+}
+
+bool Meeting::operator==(const Meeting& other)
+{
+	if (m_startTime != other.m_startTime)
+	{
+		return false;
+	}
+	if (m_endTime != other.m_endTime)
+	{
+		return false;
+	}
+	if (m_name != other.m_name)
+	{
+		return false;
+	}
+	if (m_note != other.m_note)
+	{
+		return false;
+	}
+	return true;
+}
+
 std::ostream& operator<<(std::ostream& out, const Meeting& meeting)
 {
 	//out << "~Meeting~" << std::endl;
@@ -96,4 +149,75 @@ std::ostream& operator<<(std::ostream& out, const Meeting& meeting)
 	out << meeting.m_name << std::endl;
 	out << meeting.m_note << std::endl;
 	return out;
+}
+
+std::istream& operator>>(std::istream& in, Meeting& meeting)
+{
+	std::string startTimeStr;
+	std::string endTimeStr;
+	std::string hoursStr;
+	std::string minutesStr;
+	std::string name;
+	std::string note;
+
+	std::cout << "Enter starting time in format HH:MM " << std::endl;
+	in >> startTimeStr;
+	try
+	{
+		try
+		{
+			Validations::ValidateTimeFormat(startTimeStr);
+		}
+		catch (const char* message)
+		{
+			std::cerr << message << std::endl;
+			return in;
+		}
+		size_t colum = startTimeStr.find(':');
+		hoursStr = startTimeStr.substr(0, colum);
+		minutesStr = startTimeStr.substr(colum + 1);
+		Validations::ValidateTime(hoursStr, minutesStr);
+	}
+	catch (const char* message)
+	{
+		std::cerr << message << std::endl;
+		return in;
+	}
+	meeting.m_startTime = std::stoul(minutesStr) + std::stoul(hoursStr) * 100;
+
+	std::cout << "Enter ending time in format HH:MM " << std::endl;
+	in >> endTimeStr;
+	try
+	{
+		try
+		{
+			Validations::ValidateTimeFormat(endTimeStr);
+		}
+		catch (const char* message)
+		{
+			std::cerr << message << std::endl;
+			return in;
+		}
+		size_t colum = endTimeStr.find(':');
+		hoursStr = endTimeStr.substr(0, colum);
+		minutesStr = endTimeStr.substr(colum + 1);
+		Validations::ValidateTime(hoursStr, minutesStr);
+	}
+	catch (const char* message)
+	{
+		std::cerr << message << std::endl;
+		return in;
+	}
+	meeting.m_endTime = std::stoul(minutesStr) + std::stoul(hoursStr) * 100;
+
+	std::cout << "Enter name " << std::endl;
+	std::cin >> name;
+	std::cin.ignore();
+	meeting.m_name = name;
+
+	std::cout << "Enter note " << std::endl;
+	std::getline(std::cin, note);
+	meeting.m_note = note;
+
+	return in;
 }
