@@ -22,6 +22,7 @@ private:
 	size_t meetingLength(const Meeting& meeting);
 	void swapDays(Day& first, Day& second);
 	void sortDays();
+	void getLine(std::string& str, std::ifstream& in);
 	Date cinDate();
 	bool ValidateDateFormat(const std::string& dateStr);
 	bool ValidateDate(const std::string& yearStr, const std::string& monthStr, const std::string& dayStr);

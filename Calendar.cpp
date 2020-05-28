@@ -172,6 +172,15 @@ void Calendar::sortDays()
 	}
 }
 
+void Calendar::getLine(std::string& str, std::ifstream& in)
+{
+	char tempChar = 0;
+	while ((tempChar = in.get()) != '\n')
+	{
+		str.push_back(tempChar);
+	}
+}
+
 Date Calendar::cinDate()
 {
 	std::string dateStr;
@@ -455,17 +464,16 @@ Calendar::Calendar(const char* fileName) :
 	{
 		do
 		{
-
-
 			std::string dateStr;
 			bool isWeekend;
 
-			char tempChar = 0;
+			/*char tempChar = 0;
 			while ((tempChar = inStream.get()) != '\n')
 			{
 				dateStr.push_back(tempChar);
 			}
-
+			*/
+			getLine(dateStr, inStream);
 			isWeekend = bool(inStream.get() - '0');
 			inStream.ignore();
 
@@ -491,7 +499,7 @@ Calendar::Calendar(const char* fileName) :
 				endTime += size_t(inStream.get() - '0') * 10 + size_t(inStream.get() - '0');
 				inStream.ignore();
 
-				while ((tempChar = inStream.get()) != '\n')
+				/*while ((tempChar = inStream.get()) != '\n')
 				{
 					name.push_back(tempChar);
 				}
@@ -499,7 +507,10 @@ Calendar::Calendar(const char* fileName) :
 				while ((tempChar = inStream.get()) != '\n')
 				{
 					note.push_back(tempChar);
-				}
+				}*/
+
+				getLine(name, inStream);
+				getLine(note, inStream);
 
 				size_t dayPos = findDay(date);
 				if (dayPos == 0xffffffff)
@@ -605,21 +616,7 @@ void Calendar::save(std::string& fileName)
 	outStream.open(fileName, std::ofstream::trunc);
 	for (size_t i = 0; i < m_size; i++)
 	{
-		if (!m_days[i].getIsWeekend())
-		{
-			size_t meetingSize = m_days[i].getMeetingSize();
-			for (size_t j = 0; j < meetingSize; j++)
-			{
-				outStream << m_days[i].getDate();
-				outStream << m_days[i].getIsWeekend() << std::endl;
-				outStream << m_days[i].getMeeting(j);
-			}
-		}
-		else
-		{
-			outStream << m_days[i].getDate();
-			outStream << m_days[i].getIsWeekend() << std::endl;
-		}
+		outStream << m_days[i];
 
 	}
 	outStream.close();
@@ -1158,7 +1155,10 @@ void Calendar::merge()
 					}
 					else
 					{
-						mergeDays(i, otherCal.m_days[otherDayPos]);
+						if (!otherCal.m_days[otherDayPos].getIsWeekend())
+						{
+							mergeDays(i, otherCal.m_days[otherDayPos]);
+						}
 					}
 				}
 				else

@@ -225,3 +225,23 @@ bool Day::checkMeeting(size_t startTime, size_t length)
 	}
 	return false;
 }
+
+std::ostream& operator<<(std::ostream& out, const Day& day)
+{
+	if (day.m_meetingSize > 0)
+	{
+		for (size_t i = 0; i < day.m_meetingSize; i++)
+		{
+			out << day.m_date;
+			out << day.m_isWeekend << std::endl;
+			out << day.m_meetings[i];
+		}
+	}
+	else
+	{
+		out << day.m_date;
+		out << day.m_isWeekend << std::endl;
+	}
+
+	return out;
+}
