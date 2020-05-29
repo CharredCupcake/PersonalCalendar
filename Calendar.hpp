@@ -2,9 +2,6 @@
 #include <iostream>
 #include <fstream>
 #include "Day.hpp"
-#include "Validations.hpp"
-
-static const char TEST_FILE[] = "Test.txt";
 
 class Calendar
 {
@@ -15,17 +12,12 @@ private:
 
 	void pushHoliday(const Date& date);
 	void pushDay(const Day& day);
-	void pushMeeting(const Date& date, const Meeting& meeting);
 	void removeDay(size_t position);
 	size_t findDay(const Date& date);
-	size_t findMeeting(size_t dayPos, size_t startTime, size_t endTime);
-	size_t findMeeting(size_t dayPos, size_t startTime);
-	size_t meetingLength(const Meeting& meeting);
 	void swapDays(Day& first, Day& second);
 	void sortDays();
 	void getLine(std::string& str, std::ifstream& in);
 	void mergeDays(size_t dayPos, Day& otherDay);
-
 
 public:
 

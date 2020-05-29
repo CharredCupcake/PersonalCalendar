@@ -231,6 +231,30 @@ bool Day::checkMeeting(size_t startTime, size_t length)
 	return false;
 }
 
+size_t Day::findMeeting(size_t startTime, size_t endTime)
+{
+	for (size_t i = 0; i < m_meetingSize; i++)
+	{
+		if (m_meetings[i].getStartTime() == startTime && m_meetings[i].getEndTime() == endTime)
+		{
+			return i;
+		}
+	}
+	return 0xffffffff;
+}
+
+size_t Day::findMeeting(size_t startTime)
+{
+	for (size_t i = 0; i < m_meetingSize; i++)
+	{
+		if (m_meetings[i].getStartTime() == startTime)
+		{
+			return i;
+		}
+	}
+	return 0xffffffff;
+}
+
 std::ostream& operator<<(std::ostream& out, const Day& day)
 {
 	if (day.m_meetingSize > 0)

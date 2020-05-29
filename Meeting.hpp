@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <string>
+#include "Validations.hpp"
 
 class Meeting
 {
@@ -24,6 +25,7 @@ public:
 	void setName(std::string name);
 	std::string& getNote();
 	void setNote(std::string note);
+	size_t meetingLength();
 	static size_t cinTime(const char* timeType);
 
 	bool operator==(const Meeting& other);

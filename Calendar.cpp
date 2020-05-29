@@ -48,20 +48,6 @@ void Calendar::pushDay(const Day& day)
 	m_days = newDays;
 }
 
-void Calendar::pushMeeting(const Date& date, const Meeting& meeting)
-{
-	size_t dayPos = findDay(date);
-	if (dayPos == 0xffffffff)
-	{
-		pushDay(Day(date, meeting));
-	}
-	else
-	{
-		m_days[dayPos].pushMeeting(meeting);
-	}
-
-}
-
 void Calendar::removeDay(size_t position)
 {
 	if (m_size == 1)
@@ -95,43 +81,6 @@ size_t Calendar::findDay(const Date& date)
 		}
 	}
 	return 0xffffffff;
-}
-
-size_t Calendar::findMeeting(size_t dayPos, size_t startTime, size_t endTime)
-{
-	size_t meetingsSize = m_days->getMeetingSize();
-	for (size_t j = 0; j < meetingsSize ; j++)
-	{
-		if (m_days[dayPos].getMeeting(j).getStartTime() == startTime && m_days[dayPos].getMeeting(j).getEndTime() == endTime)
-		{
-			return j;
-		}
-	}
-	return 0xffffffff;
-}
-
-size_t Calendar::findMeeting(size_t dayPos, size_t startTime)
-{
-	size_t meetingsSize = m_days->getMeetingSize();
-	for (size_t j = 0; j < meetingsSize; j++)
-	{
-		if (m_days[dayPos].getMeeting(j).getStartTime() == startTime)
-		{
-			return j;
-		}
-	}
-	return 0xffffffff;
-}
-
-size_t Calendar::meetingLength(const Meeting& meeting)
-{
-	size_t length = meeting.getEndTime() - meeting.getStartTime();
-
-	if (meeting.getEndTime() % 100 < meeting.getStartTime() % 100)
-	{
-		length -= 40;
-	}
-	return length;
 }
 
 void Calendar::swapDays(Day& first, Day& second)
@@ -548,7 +497,7 @@ void Calendar::unbook()
 		}
 		else
 		{
-			size_t meetingPos = findMeeting(dayPos, startTime, endTime);
+			size_t meetingPos = m_days[dayPos].findMeeting(startTime, endTime);
 			if (meetingPos == 0xffffffff)
 			{
 				std::cout << "Meeting not found." << std::endl;
@@ -656,7 +605,7 @@ void Calendar::change()
 		}
 		else
 		{
-			meetingPos = findMeeting(dayPos, startTime);
+			meetingPos = m_days[dayPos].findMeeting(startTime);
 			if (meetingPos == 0xffffffff)
 			{
 				std::cout << "Meeting not found." << std::endl;
@@ -700,7 +649,15 @@ void Calendar::change()
 			return;
 		}
 		m_days[dayPos].removeMeeting(meetingPos);
-		pushMeeting(date, savedMeeting);
+		dayPos = findDay(date);
+		if (dayPos == 0xffffffff)
+		{
+			pushDay(Day(date, savedMeeting));
+		}
+		else
+		{
+			m_days[dayPos].pushMeeting(savedMeeting);
+		}
 		break;
 	case 2:
 		startTime = Meeting::cinTime("new start");
@@ -716,7 +673,7 @@ void Calendar::change()
 			return;
 		}
 		m_days[dayPos].removeMeeting(meetingPos);
-		duration = meetingLength(savedMeeting);
+		duration = savedMeeting.meetingLength();
 		savedMeeting.setStartTime(startTime);
 		if (startTime >= savedMeeting.getEndTime())
 		{
@@ -873,7 +830,7 @@ void Calendar::busyDays()
 				size_t meetingSize = m_days[i].getMeetingSize();
 				for (size_t j = 0; j < meetingSize; j++)
 				{
-					busyHours[i] += meetingLength(m_days[i].getMeeting(j));
+					busyHours[i] += m_days[i].getMeeting(j).meetingLength();
 				}
 			}
 		}

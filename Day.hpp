@@ -32,6 +32,8 @@ public:
 	void setDate(const Date& date);
 	size_t findFreeTime(size_t length);
 	bool checkMeeting(size_t startTime, size_t length);
+	size_t findMeeting(size_t startTime, size_t endTime);
+	size_t findMeeting(size_t startTime);
 
 	friend std::ostream& operator<<(std::ostream& out, const Day& day);
 };

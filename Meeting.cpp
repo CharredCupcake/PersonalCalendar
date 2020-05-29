@@ -1,5 +1,4 @@
 #include "Meeting.hpp"
-#include "Validations.hpp";
 
 Meeting::Meeting() :
 	m_startTime(0),
@@ -55,6 +54,17 @@ std::string& Meeting::getNote()
 void Meeting::setNote(std::string note)
 {
 	m_note = note;
+}
+
+size_t Meeting::meetingLength()
+{
+	size_t length = m_endTime - m_startTime;
+
+	if (m_endTime % 100 < m_startTime % 100)
+	{
+		length -= 40;
+	}
+	return length;
 }
 
 size_t Meeting::cinTime(const char* timeType)
