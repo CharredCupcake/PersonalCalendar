@@ -202,10 +202,18 @@ Calendar::Calendar(const char* fileName) :
 	m_size(0)
 {
 	std::ofstream outStream;
-	outStream.open(fileName, std::ios::app);
+	do
+	{
+		outStream.open(fileName, std::ios::app);
+	} while (!outStream.is_open());
 	outStream.close();
+
 	std::ifstream inStream;
-	inStream.open(fileName);
+	do
+	{
+		inStream.open(fileName);
+	} while (!inStream.is_open());
+
 	if (inStream.peek() == EOF)
 	{
 	}
@@ -315,7 +323,11 @@ void Calendar::save(std::string& fileName)
 		}
 	}
 	std::ofstream outStream;
-	outStream.open(fileName, std::ofstream::trunc);
+	do
+	{
+		outStream.open(fileName, std::ofstream::trunc);
+	} while (!outStream.is_open());
+
 	for (size_t i = 0; i < m_size; i++)
 	{
 		outStream << m_days[i];

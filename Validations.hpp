@@ -15,4 +15,3 @@ public:
 	static void ValidateTime(const std::string& hoursStr, const std::string& minutesStr);
 	static void ValidateFileName(std::string& fileName);
 };
-
